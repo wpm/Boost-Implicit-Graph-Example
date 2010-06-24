@@ -25,6 +25,7 @@ int main (int argc, char const *argv[]) {
 		std::cout << std::endl;
 	}
 
+	// Read an edge weight from the mapping.
 	EdgeWeightMap m = get(boost::edge_weight, g);
 	boost::graph_traits<ImplicitRingGraph>::edge_descriptor e(0, 1);
 	EdgeWeight w = get(boost::edge_weight, g, e);
