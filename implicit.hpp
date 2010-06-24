@@ -3,7 +3,8 @@
 #include <boost/operators.hpp> // For forward_iterator_helper
 
 
-struct AdjacentIterator;
+struct AdjacencyIterator;
+
 
 struct ImplicitRingGraph {
 	ImplicitRingGraph(size_t n):n(n) {};
@@ -19,7 +20,7 @@ struct ImplicitRingGraph {
 	typedef size_t edges_size_type;
 	typedef size_t degree_size_type;
 	
-	typedef AdjacentIterator adjacency_iterator;
+	typedef AdjacencyIterator adjacency_iterator;
 	typedef void out_edge_iterator;
 	typedef void in_edge_iterator;
 	typedef void vertex_iterator;
@@ -29,14 +30,14 @@ struct ImplicitRingGraph {
 };
 
 
-struct AdjacentIterator:public boost::forward_iterator_helper <
-		AdjacentIterator,
+struct AdjacencyIterator:public boost::forward_iterator_helper <
+		AdjacencyIterator,
 		ImplicitRingGraph::vertex_descriptor,
 		std::ptrdiff_t,
 		ImplicitRingGraph::vertex_descriptor*,
 		ImplicitRingGraph::vertex_descriptor> {
-	AdjacentIterator() {}
-	AdjacentIterator(size_t i,
+	AdjacencyIterator() {}
+	AdjacencyIterator(size_t i,
 		ImplicitRingGraph::vertex_descriptor v,
 		ImplicitRingGraph& g):i(i),v(v),n(g.n) {}
 	
@@ -48,7 +49,7 @@ struct AdjacentIterator:public boost::forward_iterator_helper <
 			return (v+ring_offset[i]) % n;
 	}
 	void operator++() {i++;}
-	bool operator==(const AdjacentIterator& other) const {
+	bool operator==(const AdjacencyIterator& other) const {
 		return i == other.i;
 	}
 	
