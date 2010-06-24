@@ -1,5 +1,5 @@
 TARGET = implicit
-OBJECTS = main.o
+OBJECTS = main.o implicit.o
 CXXFLAGS = -g -I/opt/local/include
 
 $(TARGET): $(OBJECTS)
