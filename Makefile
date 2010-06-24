@@ -1,6 +1,8 @@
+BOOST_PATH=/opt/local/include
+
 TARGET = implicit
 OBJECTS = main.o implicit.o
-CXXFLAGS = -g -I/opt/local/include
+CXXFLAGS = -g -I$(BOOST_PATH)
 
 $(TARGET): $(OBJECTS)
 	g++ $(OBJECTS) -o $@
