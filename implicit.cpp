@@ -1,7 +1,7 @@
 #include "implicit.hpp"
 
 
-// AdjacencyGraph concept
+// AdjacencyGraph model
 std::pair<AdjacencyIterator, AdjacencyIterator>
 adjacent_vertices(Vertex v, ImplicitRingGraph g) {
 	return std::pair<AdjacencyIterator, AdjacencyIterator>(
@@ -11,19 +11,18 @@ adjacent_vertices(Vertex v, ImplicitRingGraph g) {
 }
 
 
-// PropertyMap concept
+// PropertyMap model
 EdgeWeightMap::reference get(EdgeWeightMap pmap, EdgeWeightMap::key_type key) {
 	return pmap[key];
 }
 
 
-// PropertyGraph concept
-EdgeWeightMap get(boost::edge_weight_t, ImplicitRingGraph& g) {
+// PropertyGraph model
+EdgeWeightMap get(boost::edge_weight_t, const ImplicitRingGraph& g) {
 	return EdgeWeightMap();
 }
 
 
-EdgeWeight get(boost::edge_weight_t tag, ImplicitRingGraph& g, Edge e) {
+EdgeWeight get(boost::edge_weight_t tag, const ImplicitRingGraph& g, Edge& e) {
 	return get(tag, g)[e];
 }
-

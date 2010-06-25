@@ -31,9 +31,6 @@ struct ImplicitRingGraph {
 	// AdjacencyGraph concept
 	typedef RingAdjacencyIterator adjacency_iterator;
 
-	// PropertyGraph concept
-	typedef boost::edge_weight_t edge_property_type;
-
 	// Additional types required by the concept-checking code.
 	typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
 	typedef size_t vertices_size_type;
@@ -54,6 +51,8 @@ typedef boost::graph_traits<ImplicitRingGraph>::vertex_descriptor Vertex;
 typedef boost::graph_traits<ImplicitRingGraph>::edge_descriptor Edge;
 typedef boost::graph_traits<ImplicitRingGraph>::adjacency_iterator AdjacencyIterator;
 
+
+// AdjacencyGraph model
 
 /*
 Iterator over adjacent vertices in a ring graph.
@@ -89,6 +88,12 @@ struct RingAdjacencyIterator:public boost::forward_iterator_helper <
 	size_t n; // Size of the graph
 };
 
+std::pair<AdjacencyIterator, AdjacencyIterator>
+adjacent_vertices(Vertex, ImplicitRingGraph);
+
+
+
+// PropertyMap model
 
 /*
 Map from edges to weights
@@ -104,23 +109,27 @@ struct EdgeWeightMap {
 	typedef boost::readable_property_map_tag category;
 	
 	reference operator[](key_type e) const {
+		// All edges have a weight of one.
 		return 1;
 	}
 };
+
+EdgeWeightMap::reference get(EdgeWeightMap, EdgeWeightMap::key_type);
 
 // Short names from property traits types
 typedef boost::property_traits<EdgeWeightMap>::reference EdgeWeight;
 
 
-// AdjacencyGraph concept
-std::pair<AdjacencyIterator, AdjacencyIterator>
-adjacent_vertices(Vertex, ImplicitRingGraph);
+// PropertyGraph model
+namespace boost {
+	template<>
+	struct property_map<ImplicitRingGraph, boost::edge_weight_t> {
+		typedef EdgeWeightMap type;
+		typedef EdgeWeightMap const_type;
+	};
+}
 
-// PropertyMap concept
-EdgeWeightMap::reference get(EdgeWeightMap, EdgeWeightMap::key_type);
+EdgeWeightMap get(boost::edge_weight_t, const ImplicitRingGraph&);
 
-// PropertyGraph concept
-EdgeWeightMap get(boost::edge_weight_t, ImplicitRingGraph&);
-
-EdgeWeight get(boost::edge_weight_t, ImplicitRingGraph&, Edge);
+EdgeWeight get(boost::edge_weight_t, const ImplicitRingGraph&, Edge&);
 
