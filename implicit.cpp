@@ -28,11 +28,11 @@ edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
 
 
 // ReadablePropertyGraph model
-edge_weight_map get(boost::edge_weight_t, const implicit_ring_graph& g) {
-  return edge_weight_map();
+edge_pmap get(boost::edge_weight_t, const implicit_ring_graph& g) {
+  return edge_pmap();
 }
 
-boost::property_traits<edge_weight_map>::reference
+boost::property_traits<edge_pmap>::reference
 get(boost::edge_weight_t tag,
     const implicit_ring_graph& g,
     boost::graph_traits<implicit_ring_graph>::edge_descriptor& e) {

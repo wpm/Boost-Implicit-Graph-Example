@@ -117,6 +117,7 @@ struct edge_weight_map {
   }
 };
 
+
 // ReadablePropertyGraph model
 namespace boost {
   template<>
@@ -126,6 +127,8 @@ namespace boost {
   };
 }
 
+// edge_pmap is an alias for edge_weight_map.  Use edge_pmap because it comes
+// from the property_map parameterization of implicit_ring_graph.
 typedef boost::property_map<implicit_ring_graph,
                             boost::edge_weight_t>::const_type edge_pmap;
 
@@ -136,7 +139,7 @@ edge_pmap::reference get(edge_pmap, edge_pmap::key_type);
 // ReadablePropertyGraph model
 edge_pmap get(boost::edge_weight_t, const implicit_ring_graph&);
 
-boost::property_traits<edge_weight_map>::reference
+boost::property_traits<edge_pmap>::reference
 get(boost::edge_weight_t,
     const implicit_ring_graph&,
     boost::graph_traits<implicit_ring_graph>::edge_descriptor&);
