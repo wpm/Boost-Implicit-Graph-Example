@@ -6,8 +6,44 @@
 
 #include <boost/graph/properties.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-#include <utility> // For std::pair
+#include <utility>
 
+
+/*
+The file defines a ring-shaped graph usng the boost graph library.
+
+The ring graph is an undirected graph of size n whose vertices indexed are by
+integer and arranged sequentially so that each vertex i is adjacent
+to i-1 for i>0 and i+1 for i<n-1.  Vertex 0 is also adjacent to vertex n-1.
+
+For example, a ring graph of size n=5 looks like this:
+
+                    0
+                  /   \
+                4      1
+                |      |
+                3 ---- 2
+
+Each edge has a read-only floating point weight associated with it.
+
+The graph is defined inside the implicit_ring namespace.  Various aspects of
+the graph are implemented by the following structures:
+
+  implicit_ring::graph
+    Defines types for the Graph and IncidenceGraph concepts
+
+  implicit_ring::ring_out_edge_iterator
+    Implements the ring topology
+
+  implicit_ring::edge_weight_map
+    Defines a property map between edges and weights
+
+  boost::property_map<implicit_ring::graph, boost::edge_weight_t>
+    Associates the edges of the ring graph with the edge weight map
+
+Along with the various valid expression functions, these define a model of a
+Boost Graph Library graph concept.
+*/
 
 // Forward declarations
 namespace implicit_ring {
@@ -22,7 +58,7 @@ namespace boost {
   // that the namespaces do not nest.
   template<>
   struct property_map<implicit_ring::graph,
-                      boost::edge_weight_t> {
+                      edge_weight_t> {
     typedef implicit_ring::edge_weight_map type;
     typedef implicit_ring::edge_weight_map const_type;
   };
@@ -33,14 +69,7 @@ namespace implicit_ring {
   Undirected graph of vertices arranged in a ring shape.
 
   Vertices are indexed by integer, and edges connect vertices with consecutive
-  indices.  The vertex n-1 is adjacent to the vertex 0.  For example, a
-  ring graph of size 5 looks like this:
-
-                      0
-                    /   \
-                  4      1
-                  |      |
-                  3 ---- 2
+  indices.  Vertex 0 is also adjacent to the vertex n-1.
   */
   class graph {
   public:
