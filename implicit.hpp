@@ -11,7 +11,7 @@
 
 // Forward declarations
 namespace implicit_ring {
-  class implicit_ring_graph;
+  class graph;
   class ring_out_edge_iterator;
   struct edge_weight_map;
 }
@@ -21,7 +21,7 @@ namespace boost {
   // This has to be declared outside the implicit_ring namespace block so
   // that the namespaces do not nest.
   template<>
-  struct property_map<implicit_ring::implicit_ring_graph,
+  struct property_map<implicit_ring::graph,
                       boost::edge_weight_t> {
     typedef implicit_ring::edge_weight_map type;
     typedef implicit_ring::edge_weight_map const_type;
@@ -42,7 +42,7 @@ namespace implicit_ring {
                   |      |
                   3 ---- 2
   */
-  class implicit_ring_graph {
+  class graph {
   public:
     // Graph associated types
     typedef size_t vertex_descriptor;
@@ -65,7 +65,7 @@ namespace implicit_ring {
     typedef void vertex_iterator;
     typedef void edge_iterator;
 
-    implicit_ring_graph(size_t n):m_n(n) {};
+    graph(size_t n):m_n(n) {};
 
     size_t n() {return m_n;}
 
@@ -76,13 +76,13 @@ namespace implicit_ring {
 
   // Use these graph_traits parameterizations to refer to the associated
   // graph types.
-  typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+  typedef boost::graph_traits<graph>::vertex_descriptor
           vertex_descriptor;
-  typedef boost::graph_traits<implicit_ring_graph>::edge_descriptor
+  typedef boost::graph_traits<graph>::edge_descriptor
           edge_descriptor;
-  typedef boost::graph_traits<implicit_ring_graph>::out_edge_iterator
+  typedef boost::graph_traits<graph>::out_edge_iterator
           out_edge_iterator;
-  typedef boost::graph_traits<implicit_ring_graph>::degree_size_type
+  typedef boost::graph_traits<graph>::degree_size_type
           degree_size_type;
 
   /*
@@ -118,10 +118,10 @@ namespace implicit_ring {
     ring_out_edge_iterator():m_p(PREV),m_u(0),m_n(0) {};
     explicit ring_out_edge_iterator(out_edge_iterator_position p,
                                     vertex_descriptor u,
-                                    const implicit_ring_graph& g):
+                                    const graph& g):
                                     m_p(p),
                                     m_u(u),
-                                    m_n( ((implicit_ring_graph&)g).n() ) {};
+                                    m_n( ((graph&)g).n() ) {};
 
   private:
     friend class boost::iterator_core_access;
@@ -150,38 +150,38 @@ namespace implicit_ring {
 
 
   // IncidenceGraph valid expressions
-  vertex_descriptor source(edge_descriptor, const implicit_ring_graph&);
+  vertex_descriptor source(edge_descriptor, const graph&);
 
   inline vertex_descriptor
-  source(edge_descriptor e, const implicit_ring_graph& g) {
+  source(edge_descriptor e, const graph& g) {
     // The first vertex in the edge is the source.
     return e.first;
   }
 
 
-  vertex_descriptor target(edge_descriptor, implicit_ring_graph&);
+  vertex_descriptor target(edge_descriptor, graph&);
 
   inline vertex_descriptor
-  target(edge_descriptor e, const implicit_ring_graph& g) {
+  target(edge_descriptor e, const graph& g) {
    // The second vertex in the edge is the target.
    return e.second;
   }
 
   std::pair<out_edge_iterator, out_edge_iterator>
-  out_edges(vertex_descriptor, const implicit_ring_graph&);
+  out_edges(vertex_descriptor, const graph&);
 
   inline std::pair<out_edge_iterator, out_edge_iterator>
-  out_edges(vertex_descriptor u, const implicit_ring_graph& g) {
+  out_edges(vertex_descriptor u, const graph& g) {
     return std::pair<out_edge_iterator, out_edge_iterator>(
       out_edge_iterator(PREV, u, g),   // The first iterator position
       out_edge_iterator(END, u, g) );  // The last iterator position
   }
 
 
-  degree_size_type out_degree(vertex_descriptor, const implicit_ring_graph&);
+  degree_size_type out_degree(vertex_descriptor, const graph&);
 
   inline degree_size_type
-  out_degree(vertex_descriptor, const implicit_ring_graph&) {
+  out_degree(vertex_descriptor, const graph&) {
     // All vertices in a ring graph have two neighbors.
     return 2;
   }
@@ -204,7 +204,7 @@ namespace implicit_ring {
 
   // Use these propety_map and property_traits parameterizations to refer to
   // the associated property map types.
-  typedef boost::property_map<implicit_ring_graph,
+  typedef boost::property_map<graph,
                               boost::edge_weight_t>::const_type
           const_edge_weight_map;
   typedef boost::property_traits<const_edge_weight_map>::reference
@@ -222,19 +222,19 @@ namespace implicit_ring {
 
 
   // ReadablePropertyGraph valid expressions
-  const_edge_weight_map get(boost::edge_weight_t, const implicit_ring_graph&);
+  const_edge_weight_map get(boost::edge_weight_t, const graph&);
 
   inline const_edge_weight_map
-  get(boost::edge_weight_t, const implicit_ring_graph& g) {
+  get(boost::edge_weight_t, const graph& g) {
     return const_edge_weight_map();
   }
 
   edge_weight_map_reference get(boost::edge_weight_t,
-                                const implicit_ring_graph&,
+                                const graph&,
                                 edge_weight_map_key);
 
   edge_weight_map_reference get(boost::edge_weight_t tag,
-                                const implicit_ring_graph& g,
+                                const graph& g,
                                 edge_weight_map_key e) {
     return get(tag, g)[e];
   }

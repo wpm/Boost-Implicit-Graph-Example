@@ -12,20 +12,19 @@
 int main (int argc, char const *argv[]) {
   using namespace implicit_ring;
 
-  // Check the concepts that implicit_ring_graph models.
-  boost::function_requires<
-    boost::IncidenceGraphConcept<implicit_ring_graph> >();
+  // Check the concepts that graph models.
+  boost::function_requires< boost::IncidenceGraphConcept<graph> >();
 
   boost::function_requires<
     boost::ReadablePropertyMapConcept<const_edge_weight_map,
                                       edge_descriptor> >();
   boost::function_requires<
-    boost::ReadablePropertyGraphConcept<implicit_ring_graph,
+    boost::ReadablePropertyGraphConcept<graph,
                                         edge_descriptor,
                                         boost::edge_weight_t> >();
 
   // Create a small ring graph.
-  implicit_ring_graph g(5);
+  graph g(5);
   const_edge_weight_map m = get(boost::edge_weight, g);
 
   // Print the outgoing edges of all vertices along with their weights.
