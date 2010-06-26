@@ -105,14 +105,10 @@ namespace implicit_ring {
 
   // Use these graph_traits parameterizations to refer to the associated
   // graph types.
-  typedef boost::graph_traits<graph>::vertex_descriptor
-          vertex_descriptor;
-  typedef boost::graph_traits<graph>::edge_descriptor
-          edge_descriptor;
-  typedef boost::graph_traits<graph>::out_edge_iterator
-          out_edge_iterator;
-  typedef boost::graph_traits<graph>::degree_size_type
-          degree_size_type;
+  typedef boost::graph_traits<graph>::vertex_descriptor vertex_descriptor;
+  typedef boost::graph_traits<graph>::edge_descriptor edge_descriptor;
+  typedef boost::graph_traits<graph>::out_edge_iterator out_edge_iterator;
+  typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
 
   /*
   Each vertex has two neighbors: the one that comes before it in the ring and
