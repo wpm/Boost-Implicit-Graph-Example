@@ -102,7 +102,7 @@ namespace implicit_ring {
 
     graph(size_t n):m_n(n) {};
 
-    size_t n() {return m_n;}
+    size_t n() const {return m_n;}
 
   private:
     // The number of vertices in the graph.
@@ -155,7 +155,7 @@ namespace implicit_ring {
                                     const graph& g):
                                     m_p(p),
                                     m_u(u),
-                                    m_n( ((graph&)g).n() ) {};
+                                    m_n( g.n() ) {};
 
   private:
     friend class boost::iterator_core_access;
@@ -224,7 +224,7 @@ namespace implicit_ring {
   vertices_size_type num_vertices(const graph&);
 
   inline vertices_size_type num_vertices(const graph& g) {
-    return ((graph&) g).n();
+    return g.n();
   };
 
   std::pair<vertex_iterator, vertex_iterator> vertices(const graph&);
