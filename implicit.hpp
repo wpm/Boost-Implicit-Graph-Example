@@ -10,7 +10,6 @@
 
 
 // Forward declaration
-struct ring_adjacency_iterator;
 struct ring_out_edge_iterator;
 
 /*
@@ -18,33 +17,34 @@ Undirected graph of vertices arranged in a ring shape.
 
 Vertices are indexed by integer, and edges connect vertices with consecutive
 indices.  The n-th vertex is adjacent to the 0-th vertex.  For example, a
-ring graph of size 3 looks like this:
+ring graph of size 5 looks like this:
 
                     0
                   /   \
-                1 ----- 2
+                4      1
+                |      |
+                3 ---- 2
 */
 struct implicit_ring_graph {
   implicit_ring_graph(size_t n):n(n) {};
 
-  // Graph model
+  // Graph associated types
   typedef size_t vertex_descriptor;
   typedef boost::undirected_tag directed_category;
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   typedef boost::incidence_graph_tag traversal_category;
 
-  // IncidenceGraph model
+  // IncidenceGraph associated types
   typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
   typedef ring_out_edge_iterator out_edge_iterator;
   typedef size_t degree_size_type;
 
-  // AdjacencyGraph model
-  typedef ring_adjacency_iterator adjacency_iterator;
-
-  // Additional types required by the concept-checking code.
-  typedef size_t vertices_size_type;
-  typedef size_t edges_size_type;
-
+  // The following additional types are not required by any of the concepts
+  // modeled here.  They are still declared here because graph_traits expects
+  // them to be in the graph class.
+  typedef void adjacency_iterator;
+  typedef void vertices_size_type;
+  typedef void edges_size_type;
   typedef void in_edge_iterator;
   typedef void vertex_iterator;
   typedef void edge_iterator;
@@ -54,13 +54,14 @@ struct implicit_ring_graph {
 };
 
 
-// IncidenceGraph model
-
 /*
-Iterator over adjacent vertices in a ring graph.
+Iterator over outgoing edges in a ring graph.
 
-For vertex i, this returns vertex i-1 and then vertex i+1, wrapping around
-the end of the ring as needed.
+In an undirected graph such as this one, all the incident edges are outgoing
+edges.
+
+For vertex i, this returns edge (i, i-1) and then edge (i, i+1), wrapping
+around the end of the ring as needed.
 */
 struct ring_out_edge_iterator:public boost::forward_iterator_helper <
     ring_out_edge_iterator,
@@ -85,7 +86,9 @@ struct ring_out_edge_iterator:public boost::forward_iterator_helper <
       v = (u+ring_offset[i]) % n;
     return edge(u, v);
   }
+
   void operator++() {i++;}
+
   bool operator==(const ring_out_edge_iterator& other) const {
     return i == other.i;
   }
@@ -95,6 +98,7 @@ struct ring_out_edge_iterator:public boost::forward_iterator_helper <
   size_t n; // Size of the graph
 };
 
+// IncidenceGraph valid expressions
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 source(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
        implicit_ring_graph);
@@ -116,8 +120,6 @@ out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
           implicit_ring_graph);
 
 
-// PropertyMap model
-
 /*
 Map from edges to weights
 
@@ -136,7 +138,7 @@ struct edge_weight_map {
 };
 
 
-// ReadablePropertyGraph model
+// ReadablePropertyGraph associated types
 namespace boost {
   template<>
   struct property_map<implicit_ring_graph, boost::edge_weight_t> {
@@ -150,11 +152,11 @@ namespace boost {
 typedef boost::property_map<implicit_ring_graph,
                             boost::edge_weight_t>::const_type edge_pmap;
 
-// PropertyMap model
+// PropertyMap valid expressions
 edge_pmap::reference get(edge_pmap, edge_pmap::key_type);
 
 
-// ReadablePropertyGraph model
+// ReadablePropertyGraph valid expressions
 edge_pmap get(boost::edge_weight_t, const implicit_ring_graph&);
 
 boost::property_traits<edge_pmap>::reference

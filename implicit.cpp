@@ -7,11 +7,12 @@
 #include "implicit.hpp"
 
 
-// IncidenceGraph model
+// IncidenceGraph valid expressions
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 source(
   boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
   implicit_ring_graph g) {
+  // The first vertex in the edge is the source.
   return e.first;
 }
 
@@ -19,6 +20,7 @@ boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 target(
   boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
   implicit_ring_graph g) {
+  // The second vertex in the edge is the target.
   return e.second;
 }
 
@@ -38,13 +40,13 @@ out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
 }
 
 
-// PropertyMap model
+// PropertyMap valid expressions
 edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
   return pmap[key];
 }
 
 
-// ReadablePropertyGraph model
+// ReadablePropertyGraph valid expressions
 edge_pmap get(boost::edge_weight_t, const implicit_ring_graph& g) {
   return edge_pmap();
 }
