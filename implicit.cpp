@@ -8,28 +8,33 @@
 
 
 // AdjacencyGraph model
-std::pair<adjacency_iterator, adjacency_iterator>
+typedef boost::graph_traits<implicit_ring_graph>::adjacency_iterator
+  adjacency_iter;
+typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor vertex;
+
+std::pair<adjacency_iter, adjacency_iter>
 adjacent_vertices(vertex v, implicit_ring_graph g) {
-  return std::pair<adjacency_iterator, adjacency_iterator>(
-    adjacency_iterator(0, v, g),
-    adjacency_iterator(2, v, g)
+  return std::pair<adjacency_iter, adjacency_iter>(
+    adjacency_iter(0, v, g),  // The first iterator position
+    adjacency_iter(2, v, g)   // The last iterator position
   );
 }
 
 
 // PropertyMap model
-edge_weight_map::reference get(edge_weight_map pmap, edge_weight_map::key_type key) {
+edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
   return pmap[key];
 }
 
 
-// PropertyGraph model
+// ReadablePropertyGraph model
 edge_weight_map get(boost::edge_weight_t, const implicit_ring_graph& g) {
   return edge_weight_map();
 }
 
-
-weight get(boost::edge_weight_t tag, const implicit_ring_graph& g, edge& e) {
+boost::property_traits<edge_weight_map>::reference
+get(boost::edge_weight_t tag,
+    const implicit_ring_graph& g,
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor& e) {
   return get(tag, g)[e];
 }
-

@@ -11,8 +11,17 @@
 
 int main (int argc, char const *argv[]) {
   using namespace boost;
+
+  typedef graph_traits<implicit_ring_graph>::adjacency_iterator
+    adjacency_iterator;
+  typedef graph_traits<implicit_ring_graph>::edge_descriptor edge;
+  typedef property_map<implicit_ring_graph, edge_weight_t>::const_type
+    edge_pmap;
+  typedef property_traits<edge_pmap>::reference weight;
+
+  // Check the concepts that implicit_ring_graph models.
   function_requires< AdjacencyGraphConcept<implicit_ring_graph> >();
-  function_requires< ReadablePropertyMapConcept<edge_weight_map, edge> >();
+  function_requires< ReadablePropertyMapConcept<edge_pmap, edge> >();
   function_requires<
     ReadablePropertyGraphConcept<
                 implicit_ring_graph,
@@ -24,7 +33,7 @@ int main (int argc, char const *argv[]) {
   // Print all the vertices and their neighbors.
   for(size_t i = 0; i < 5; i++) {
     std::cout << i << ": ";
-    adjacency_iterator ai, ai_end;
+    boost::graph_traits<implicit_ring_graph>::adjacency_iterator ai, ai_end;
     for (tie(ai, ai_end) = adjacent_vertices(i, g); ai != ai_end; ai++) {
       std::cout << *ai << " ";
     }
@@ -32,7 +41,7 @@ int main (int argc, char const *argv[]) {
   }
 
   // Read an edge weight from the mapping.
-  edge_weight_map m = get(boost::edge_weight, g);
+  edge_pmap m = get(boost::edge_weight, g);
   boost::graph_traits<implicit_ring_graph>::edge_descriptor e(0, 1);
   weight w = get(boost::edge_weight, g, e);
   std::cout << w << std::endl;

@@ -22,19 +22,17 @@ ring graph of size 3 looks like this:
                     0
                   /   \
                 1 ----- 2
-
-Models: Graph, AdjacencyGraph, PropertyGraph
 */
 struct implicit_ring_graph {
   implicit_ring_graph(size_t n):n(n) {};
 
-  // Graph concept
+  // Graph model
   typedef size_t vertex_descriptor;
   typedef boost::undirected_tag directed_category;
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   typedef boost::adjacency_graph_tag traversal_category;
 
-  // AdjacencyGraph concept
+  // AdjacencyGraph model
   typedef ring_adjacency_iterator adjacency_iterator;
 
   // Additional types required by the concept-checking code.
@@ -52,11 +50,6 @@ struct implicit_ring_graph {
   size_t n;
 };
 
-// Short names from graph traits types
-typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor vertex;
-typedef boost::graph_traits<implicit_ring_graph>::edge_descriptor edge;
-typedef boost::graph_traits<implicit_ring_graph>::adjacency_iterator adjacency_iterator;
-
 
 // AdjacencyGraph model
 
@@ -68,14 +61,16 @@ the end of the ring as needed.
 */
 struct ring_adjacency_iterator:public boost::forward_iterator_helper <
     ring_adjacency_iterator,
-    vertex,
+    boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
     std::ptrdiff_t,
-    vertex*,
-    vertex> {
+    boost::graph_traits<implicit_ring_graph>::vertex_descriptor*,
+    boost::graph_traits<implicit_ring_graph>::vertex_descriptor> {
+  typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor vertex;
+
   ring_adjacency_iterator() {}
   ring_adjacency_iterator(size_t i,
-              vertex v,
-              implicit_ring_graph& g):i(i),v(v),n(g.n) {}
+                          vertex v,
+                          implicit_ring_graph& g):i(i),v(v),n(g.n) {}
 
   vertex operator*() const {
     static const int ring_offset[] = {-1, 1};
@@ -94,8 +89,12 @@ struct ring_adjacency_iterator:public boost::forward_iterator_helper <
   size_t n; // Size of the graph
 };
 
-std::pair<adjacency_iterator, adjacency_iterator>
-adjacent_vertices(vertex, implicit_ring_graph);
+std::pair<
+  boost::graph_traits<implicit_ring_graph>::adjacency_iterator,
+  boost::graph_traits<implicit_ring_graph>::adjacency_iterator >
+adjacent_vertices(
+  boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
+  implicit_ring_graph);
 
 
 
@@ -105,13 +104,11 @@ adjacent_vertices(vertex, implicit_ring_graph);
 Map from edges to weights
 
 Edges are pairs of vertex indices and weights are float values.
-
-Models: ReadablePropertyMap
 */
 struct edge_weight_map {
   typedef float value_type;
   typedef float reference;
-  typedef edge key_type;
+  typedef boost::graph_traits<implicit_ring_graph>::edge_descriptor key_type;
   typedef boost::readable_property_map_tag category;
 
   reference operator[](key_type e) const {
@@ -120,13 +117,7 @@ struct edge_weight_map {
   }
 };
 
-edge_weight_map::reference get(edge_weight_map, edge_weight_map::key_type);
-
-// Short names from property traits types
-typedef boost::property_traits<edge_weight_map>::reference weight;
-
-
-// PropertyGraph model
+// ReadablePropertyGraph model
 namespace boost {
   template<>
   struct property_map<implicit_ring_graph, boost::edge_weight_t> {
@@ -135,7 +126,18 @@ namespace boost {
   };
 }
 
-edge_weight_map get(boost::edge_weight_t, const implicit_ring_graph&);
+typedef boost::property_map<implicit_ring_graph,
+                            boost::edge_weight_t>::const_type edge_pmap;
 
-weight get(boost::edge_weight_t, const implicit_ring_graph&, edge&);
+// PropertyMap model
+edge_pmap::reference get(edge_pmap, edge_pmap::key_type);
+
+
+// ReadablePropertyGraph model
+edge_pmap get(boost::edge_weight_t, const implicit_ring_graph&);
+
+boost::property_traits<edge_weight_map>::reference
+get(boost::edge_weight_t,
+    const implicit_ring_graph&,
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor&);
 
