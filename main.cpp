@@ -35,11 +35,13 @@ int main (int argc, char const *argv[]) {
   // Vertex 2: <2, 1>(1)  <2, 3>(1)
   // Vertex 3: <3, 2>(1)  <3, 4>(1)
   // Vertex 4: <4, 3>(1)  <4, 0>(1)
-  for(size_t u = 0; u < 5; u++) {
+  vertex_iterator vi, vi_end;
+  for (tie(vi, vi_end) = vertices(g); vi != vi_end; vi++) {
+    vertex_descriptor u = *vi;
     std::cout << "Vertex " << u << ": ";
-    out_edge_iterator oi, oi_end;
-    for (tie(oi, oi_end) = out_edges(u, g); oi != oi_end; oi++) {
-      edge_descriptor e = *oi;
+    out_edge_iterator ei, ei_end;
+    for (tie(ei, ei_end) = out_edges(u, g); ei != ei_end; ei++) {
+      edge_descriptor e = *ei;
       std::cout << "<" << e.first << ", " << e.second << ">";
       std::cout << "(" << get(boost::edge_weight, g, e) << ")" << "  ";
     }
