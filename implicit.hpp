@@ -5,6 +5,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <boost/graph/properties.hpp>
+#include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <utility>
 
@@ -65,6 +66,9 @@ namespace boost {
 }
 
 namespace implicit_ring {
+  struct ring_traversal_catetory:virtual public boost::incidence_graph_tag,
+                                 virtual public boost::vertex_list_graph_tag
+                                 {};
   /*
   Undirected graph of vertices arranged in a ring shape.
 
@@ -77,21 +81,23 @@ namespace implicit_ring {
     typedef size_t vertex_descriptor;
     typedef boost::undirected_tag directed_category;
     typedef boost::disallow_parallel_edge_tag edge_parallel_category;
-    typedef boost::incidence_graph_tag traversal_category;
+    typedef ring_traversal_catetory traversal_category;
 
     // IncidenceGraph associated types
     typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
     typedef ring_out_edge_iterator out_edge_iterator;
     typedef size_t degree_size_type;
 
+    // VertexListGraph associated types
+    typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
+    typedef size_t vertices_size_type;
+
     // The following additional types are not required by any of the concepts
     // modeled here.  They are still declared here because graph_traits expects
     // them to be in the graph class.
     typedef void adjacency_iterator;
-    typedef void vertices_size_type;
     typedef void edges_size_type;
     typedef void in_edge_iterator;
-    typedef void vertex_iterator;
     typedef void edge_iterator;
 
     graph(size_t n):m_n(n) {};
@@ -109,6 +115,9 @@ namespace implicit_ring {
   typedef boost::graph_traits<graph>::edge_descriptor edge_descriptor;
   typedef boost::graph_traits<graph>::out_edge_iterator out_edge_iterator;
   typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
+  typedef boost::graph_traits<graph>::vertex_iterator vertex_iterator;
+  typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
+
 
   /*
   Each vertex has two neighbors: the one that comes before it in the ring and
@@ -211,6 +220,20 @@ namespace implicit_ring {
     return 2;
   }
 
+  // VertexListGraph valid expressions
+  vertices_size_type num_vertices(const graph&);
+
+  inline vertices_size_type num_vertices(const graph& g) {
+    return ((graph&) g).n();
+  };
+
+  std::pair<vertex_iterator, vertex_iterator> vertices(const graph&);
+  inline std::pair<vertex_iterator, vertex_iterator>
+  vertices(const graph& g) {
+    return std::pair<vertex_iterator, vertex_iterator>(
+      vertex_iterator(0),                 // The first iterator position
+      vertex_iterator(num_vertices(g)) ); // The last iterator position
+  }
 
   /*
   Map from edges to floating point weight values
