@@ -11,6 +11,7 @@
 
 // Forward declaration
 struct ring_adjacency_iterator;
+struct ring_out_edge_iterator;
 
 /*
 Undirected graph of vertices arranged in a ring shape.
@@ -30,18 +31,20 @@ struct implicit_ring_graph {
   typedef size_t vertex_descriptor;
   typedef boost::undirected_tag directed_category;
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
-  typedef boost::adjacency_graph_tag traversal_category;
+  typedef boost::incidence_graph_tag traversal_category;
+
+  // IncidenceGraph model
+  typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
+  typedef ring_out_edge_iterator out_edge_iterator;
+  typedef size_t degree_size_type;
 
   // AdjacencyGraph model
   typedef ring_adjacency_iterator adjacency_iterator;
 
   // Additional types required by the concept-checking code.
-  typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
   typedef size_t vertices_size_type;
   typedef size_t edges_size_type;
-  typedef size_t degree_size_type;
 
-  typedef void out_edge_iterator;
   typedef void in_edge_iterator;
   typedef void vertex_iterator;
   typedef void edge_iterator;
@@ -51,7 +54,7 @@ struct implicit_ring_graph {
 };
 
 
-// AdjacencyGraph model
+// IncidenceGraph model
 
 /*
 Iterator over adjacent vertices in a ring graph.
@@ -59,43 +62,58 @@ Iterator over adjacent vertices in a ring graph.
 For vertex i, this returns vertex i-1 and then vertex i+1, wrapping around
 the end of the ring as needed.
 */
-struct ring_adjacency_iterator:public boost::forward_iterator_helper <
-    ring_adjacency_iterator,
-    boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
+struct ring_out_edge_iterator:public boost::forward_iterator_helper <
+    ring_out_edge_iterator,
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor,
     std::ptrdiff_t,
-    boost::graph_traits<implicit_ring_graph>::vertex_descriptor*,
-    boost::graph_traits<implicit_ring_graph>::vertex_descriptor> {
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor*,
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor> {
   typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor vertex;
+  typedef boost::graph_traits<implicit_ring_graph>::edge_descriptor edge;
 
-  ring_adjacency_iterator() {}
-  ring_adjacency_iterator(size_t i,
-                          vertex v,
-                          implicit_ring_graph& g):i(i),v(v),n(g.n) {}
+  ring_out_edge_iterator() {}
+  ring_out_edge_iterator(size_t i,
+                        vertex u,
+                        implicit_ring_graph& g):i(i),u(u),n(g.n) {}
 
-  vertex operator*() const {
+  edge operator*() const {
     static const int ring_offset[] = {-1, 1};
-    if (i == 0 && v == 0)
-      return n-1; // Wrap around to the largest vertex
+    vertex v;
+    if (i == 0 && u == 0)
+      v = n-1; // Wrap around to the largest vertex
     else
-      return (v+ring_offset[i]) % n;
+      v = (u+ring_offset[i]) % n;
+    return edge(u, v);
   }
   void operator++() {i++;}
-  bool operator==(const ring_adjacency_iterator& other) const {
+  bool operator==(const ring_out_edge_iterator& other) const {
     return i == other.i;
   }
 
   size_t i; // Index into ring_offset, ranges over {0,1}
-  vertex v; // Vertex whose neighbors are iterated
+  vertex u; // Vertex whose out edges are iterated
   size_t n; // Size of the graph
 };
 
-std::pair<
-  boost::graph_traits<implicit_ring_graph>::adjacency_iterator,
-  boost::graph_traits<implicit_ring_graph>::adjacency_iterator >
-adjacent_vertices(
-  boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
-  implicit_ring_graph);
+boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+source(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
+       implicit_ring_graph);
 
+boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+target(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
+       implicit_ring_graph);
+
+// out_iter is an alias for ring_out_edge_iterator.  Use out_iter because it comes
+// from the graph_traits parameterization of implicit_ring_graph.
+typedef boost::graph_traits<implicit_ring_graph>::out_edge_iterator out_iter;
+
+std::pair<out_iter, out_iter>
+out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
+          implicit_ring_graph);
+
+boost::graph_traits<implicit_ring_graph>::degree_size_type
+out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
+          implicit_ring_graph);
 
 
 // PropertyMap model

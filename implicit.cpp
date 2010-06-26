@@ -7,17 +7,34 @@
 #include "implicit.hpp"
 
 
-// AdjacencyGraph model
-typedef boost::graph_traits<implicit_ring_graph>::adjacency_iterator
-  adjacency_iter;
-typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor vertex;
+// IncidenceGraph model
+boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+source(
+  boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
+  implicit_ring_graph g) {
+  return e.first;
+}
 
-std::pair<adjacency_iter, adjacency_iter>
-adjacent_vertices(vertex v, implicit_ring_graph g) {
-  return std::pair<adjacency_iter, adjacency_iter>(
-    adjacency_iter(0, v, g),  // The first iterator position
-    adjacency_iter(2, v, g)   // The last iterator position
-  );
+boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+target(
+  boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
+  implicit_ring_graph g) {
+  return e.second;
+}
+
+std::pair<out_iter, out_iter>
+out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor u,
+          implicit_ring_graph g) {
+  return std::pair<out_iter, out_iter>(
+    out_iter(0, u, g),    // The first iterator position
+    out_iter(2, u, g) );  // The last iterator position
+}
+
+boost::graph_traits<implicit_ring_graph>::degree_size_type
+out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
+          implicit_ring_graph) {
+  // All vertices in a ring graph have two neighbors.
+  return 2;
 }
 
 
