@@ -211,8 +211,8 @@ typedef boost::property_map<implicit_ring_graph,
 // PropertyMap valid expressions
 edge_pmap::reference get(edge_pmap, edge_pmap::key_type);
 
-inline edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
-  return pmap[key];
+inline edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type e) {
+  return pmap[e];
 }
 
 
@@ -226,12 +226,12 @@ inline edge_pmap get(boost::edge_weight_t, const implicit_ring_graph& g) {
 boost::property_traits<edge_pmap>::reference
 get(boost::edge_weight_t,
     const implicit_ring_graph&,
-    boost::graph_traits<implicit_ring_graph>::edge_descriptor&);
+    boost::property_traits<edge_pmap>::key_type);
 
 inline boost::property_traits<edge_pmap>::reference
 get(boost::edge_weight_t tag,
     const implicit_ring_graph& g,
-    boost::graph_traits<implicit_ring_graph>::edge_descriptor& e) {
+    boost::property_traits<edge_pmap>::key_type e) {
   return get(tag, g)[e];
 }
 
