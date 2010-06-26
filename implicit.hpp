@@ -102,10 +102,25 @@ struct ring_out_edge_iterator:public boost::forward_iterator_helper <
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 source(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
        implicit_ring_graph);
+inline boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+source(
+  boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
+  implicit_ring_graph g) {
+  // The first vertex in the edge is the source.
+  return e.first;
+}
+
 
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 target(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
        implicit_ring_graph);
+inline boost::graph_traits<implicit_ring_graph>::vertex_descriptor
+target(
+ boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
+ implicit_ring_graph g) {
+ // The second vertex in the edge is the target.
+ return e.second;
+}
 
 // out_iter is an alias for ring_out_edge_iterator.  Use out_iter because it comes
 // from the graph_traits parameterization of implicit_ring_graph.
@@ -114,10 +129,24 @@ typedef boost::graph_traits<implicit_ring_graph>::out_edge_iterator out_iter;
 std::pair<out_iter, out_iter>
 out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
           implicit_ring_graph);
+inline std::pair<out_iter, out_iter>
+out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor u,
+          implicit_ring_graph g) {
+  return std::pair<out_iter, out_iter>(
+    out_iter(0, u, g),    // The first iterator position
+    out_iter(2, u, g) );  // The last iterator position
+}
+
 
 boost::graph_traits<implicit_ring_graph>::degree_size_type
 out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
           implicit_ring_graph);
+inline boost::graph_traits<implicit_ring_graph>::degree_size_type
+out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
+          implicit_ring_graph) {
+  // All vertices in a ring graph have two neighbors.
+  return 2;
+}
 
 
 /*
@@ -154,13 +183,25 @@ typedef boost::property_map<implicit_ring_graph,
 
 // PropertyMap valid expressions
 edge_pmap::reference get(edge_pmap, edge_pmap::key_type);
+inline edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
+  return pmap[key];
+}
 
 
 // ReadablePropertyGraph valid expressions
 edge_pmap get(boost::edge_weight_t, const implicit_ring_graph&);
+inline edge_pmap get(boost::edge_weight_t, const implicit_ring_graph& g) {
+  return edge_pmap();
+}
 
 boost::property_traits<edge_pmap>::reference
 get(boost::edge_weight_t,
     const implicit_ring_graph&,
     boost::graph_traits<implicit_ring_graph>::edge_descriptor&);
+  boost::property_traits<edge_pmap>::reference
+inline get(boost::edge_weight_t tag,
+    const implicit_ring_graph& g,
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor& e) {
+  return get(tag, g)[e];
+}
 

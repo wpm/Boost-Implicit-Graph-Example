@@ -1,7 +1,7 @@
 BOOST_PATH=/opt/local/include
 
 TARGET = implicit
-OBJECTS = main.o implicit.o
+OBJECTS = main.o
 CXXFLAGS = -g -I$(BOOST_PATH) -Wall -Werror -O3
 
 $(TARGET): $(OBJECTS)
