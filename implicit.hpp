@@ -10,7 +10,7 @@
 
 
 // Forward declaration
-struct ring_out_edge_iterator;
+class ring_out_edge_iterator;
 
 /*
 Undirected graph of vertices arranged in a ring shape.
@@ -25,9 +25,8 @@ ring graph of size 5 looks like this:
                 |      |
                 3 ---- 2
 */
-struct implicit_ring_graph {
-  implicit_ring_graph(size_t n):m_n(n) {};
-
+class implicit_ring_graph {
+public:
   // Graph associated types
   typedef size_t vertex_descriptor;
   typedef boost::undirected_tag directed_category;
@@ -49,6 +48,11 @@ struct implicit_ring_graph {
   typedef void vertex_iterator;
   typedef void edge_iterator;
 
+  implicit_ring_graph(size_t n):m_n(n) {};
+
+  size_t n() {return m_n;}
+
+private:
   // The number of vertices in the graph.
   size_t m_n;
 };
@@ -91,7 +95,7 @@ public:
   explicit ring_out_edge_iterator(ring_out_edge_iterator_position p,
                                   vertex u,
                                   implicit_ring_graph& g):
-                                  m_p(p),m_u(u),m_n(g.m_n) {};
+                                  m_p(p),m_u(u),m_n(g.n()) {};
 
 private:
   friend class boost::iterator_core_access;
