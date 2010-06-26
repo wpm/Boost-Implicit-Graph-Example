@@ -26,7 +26,7 @@ ring graph of size 5 looks like this:
                 3 ---- 2
 */
 struct implicit_ring_graph {
-  implicit_ring_graph(size_t n):n(n) {};
+  implicit_ring_graph(size_t n):m_n(n) {};
 
   // Graph associated types
   typedef size_t vertex_descriptor;
@@ -50,7 +50,7 @@ struct implicit_ring_graph {
   typedef void edge_iterator;
 
   // The number of vertices in the graph.
-  size_t n;
+  size_t m_n;
 };
 
 
@@ -87,34 +87,35 @@ class ring_out_edge_iterator:public boost::iterator_facade <
   typedef boost::graph_traits<implicit_ring_graph>::edge_descriptor edge;
 
 public:
-  ring_out_edge_iterator():p(PREV),u(0),n(0) {};
+  ring_out_edge_iterator():m_p(PREV),m_u(0),m_n(0) {};
   explicit ring_out_edge_iterator(ring_out_edge_iterator_position p,
                                   vertex u,
-                                  implicit_ring_graph& g):p(p),u(u),n(g.n) {};
+                                  implicit_ring_graph& g):
+                                  m_p(p),m_u(u),m_n(g.m_n) {};
 
 private:
   friend class boost::iterator_core_access;
 
-  void increment() {p++;}
+  void increment() {m_p++;}
 
   bool equal(ring_out_edge_iterator const& other) const {
-    return this->p == other.p;
+    return this->m_p == other.m_p;
   }
 
   edge dereference() const {
     static const int ring_offset[] = {-1, 1};
     vertex v;
 
-    if (p == PREV && u == 0)
-      v = n-1; // Wrap around to the largest vertex
+    if (m_p == PREV && m_u == 0)
+      v = m_n-1; // Wrap around to the largest vertex
     else
-      v = (u+ring_offset[p]) % n;
-    return edge(u, v);
+      v = (m_u+ring_offset[m_p]) % m_n;
+    return edge(m_u, v);
   }
 
-  ring_out_edge_iterator_position p;
-  vertex u; // Vertex whose out edges are iterated
-  size_t n; // Size of the graph
+  ring_out_edge_iterator_position m_p;
+  vertex m_u; // Vertex whose out edges are iterated
+  size_t m_n; // Size of the graph
 };
 
 
@@ -122,10 +123,10 @@ private:
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 source(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
        implicit_ring_graph);
+
 inline boost::graph_traits<implicit_ring_graph>::vertex_descriptor
-source(
-  boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
-  implicit_ring_graph g) {
+source(boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
+       implicit_ring_graph g) {
   // The first vertex in the edge is the source.
   return e.first;
 }
@@ -134,10 +135,10 @@ source(
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
 target(boost::graph_traits<implicit_ring_graph>::edge_descriptor,
        implicit_ring_graph);
+
 inline boost::graph_traits<implicit_ring_graph>::vertex_descriptor
-target(
- boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
- implicit_ring_graph g) {
+target(boost::graph_traits<implicit_ring_graph>::edge_descriptor e,
+       implicit_ring_graph g) {
  // The second vertex in the edge is the target.
  return e.second;
 }
@@ -149,6 +150,7 @@ typedef boost::graph_traits<implicit_ring_graph>::out_edge_iterator out_iter;
 std::pair<out_iter, out_iter>
 out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
           implicit_ring_graph);
+
 inline std::pair<out_iter, out_iter>
 out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor u,
           implicit_ring_graph g) {
@@ -160,10 +162,11 @@ out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor u,
 
 boost::graph_traits<implicit_ring_graph>::degree_size_type
 out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
-          implicit_ring_graph);
+           implicit_ring_graph);
+
 inline boost::graph_traits<implicit_ring_graph>::degree_size_type
 out_degree(boost::graph_traits<implicit_ring_graph>::vertex_descriptor,
-          implicit_ring_graph) {
+           implicit_ring_graph) {
   // All vertices in a ring graph have two neighbors.
   return 2;
 }
@@ -203,6 +206,7 @@ typedef boost::property_map<implicit_ring_graph,
 
 // PropertyMap valid expressions
 edge_pmap::reference get(edge_pmap, edge_pmap::key_type);
+
 inline edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
   return pmap[key];
 }
@@ -210,6 +214,7 @@ inline edge_pmap::reference get(edge_pmap pmap, edge_pmap::key_type key) {
 
 // ReadablePropertyGraph valid expressions
 edge_pmap get(boost::edge_weight_t, const implicit_ring_graph&);
+
 inline edge_pmap get(boost::edge_weight_t, const implicit_ring_graph& g) {
   return edge_pmap();
 }
@@ -218,8 +223,9 @@ boost::property_traits<edge_pmap>::reference
 get(boost::edge_weight_t,
     const implicit_ring_graph&,
     boost::graph_traits<implicit_ring_graph>::edge_descriptor&);
-  boost::property_traits<edge_pmap>::reference
-inline get(boost::edge_weight_t tag,
+
+inline boost::property_traits<edge_pmap>::reference
+get(boost::edge_weight_t tag,
     const implicit_ring_graph& g,
     boost::graph_traits<implicit_ring_graph>::edge_descriptor& e) {
   return get(tag, g)[e];
