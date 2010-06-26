@@ -5,8 +5,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <boost/graph/properties.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <utility> // For std::pair
-#include <boost/operators.hpp> // For forward_iterator_helper
 
 
 // Forward declaration
@@ -55,48 +55,68 @@ struct implicit_ring_graph {
 
 
 /*
+Each vertex has two neighbors: the one that comes before it in the ring and
+the one that comes after.  The PREV and NEXT values correspond to these two
+neighbors, while END is a sentinel value.  These are used as offsets into the
+ring_offset array in ring_out_edge_iterator::dereference.
+
+A postfix increment operator is defined for use in
+ring_out_edge_iterator::increment.
+*/
+typedef enum {PREV, NEXT, END} ring_out_edge_iterator_position;
+
+inline ring_out_edge_iterator_position
+operator++(ring_out_edge_iterator_position &rs, int) {
+  return rs = (ring_out_edge_iterator_position)(rs + 1);
+}
+
+/*
 Iterator over outgoing edges in a ring graph.
 
-In an undirected graph such as this one, all the incident edges are outgoing
-edges.
+Note that in an undirected graph, all the incident edges are outgoing edges.
 
 For vertex i, this returns edge (i, i-1) and then edge (i, i+1), wrapping
 around the end of the ring as needed.
 */
-struct ring_out_edge_iterator:public boost::forward_iterator_helper <
+class ring_out_edge_iterator:public boost::iterator_facade <
     ring_out_edge_iterator,
     boost::graph_traits<implicit_ring_graph>::edge_descriptor,
-    std::ptrdiff_t,
-    boost::graph_traits<implicit_ring_graph>::edge_descriptor*,
-    boost::graph_traits<implicit_ring_graph>::edge_descriptor> {
+    boost::forward_traversal_tag,
+    boost::graph_traits<implicit_ring_graph>::edge_descriptor > {
   typedef boost::graph_traits<implicit_ring_graph>::vertex_descriptor vertex;
   typedef boost::graph_traits<implicit_ring_graph>::edge_descriptor edge;
 
-  ring_out_edge_iterator() {}
-  ring_out_edge_iterator(size_t i,
-                        vertex u,
-                        implicit_ring_graph& g):i(i),u(u),n(g.n) {}
+public:
+  ring_out_edge_iterator():p(PREV),u(0),n(0) {};
+  explicit ring_out_edge_iterator(ring_out_edge_iterator_position p,
+                                  vertex u,
+                                  implicit_ring_graph& g):p(p),u(u),n(g.n) {};
 
-  edge operator*() const {
+private:
+  friend class boost::iterator_core_access;
+
+  void increment() {p++;}
+
+  bool equal(ring_out_edge_iterator const& other) const {
+    return this->p == other.p;
+  }
+
+  edge dereference() const {
     static const int ring_offset[] = {-1, 1};
     vertex v;
-    if (i == 0 && u == 0)
+
+    if (p == PREV && u == 0)
       v = n-1; // Wrap around to the largest vertex
     else
-      v = (u+ring_offset[i]) % n;
+      v = (u+ring_offset[p]) % n;
     return edge(u, v);
   }
 
-  void operator++() {i++;}
-
-  bool operator==(const ring_out_edge_iterator& other) const {
-    return i == other.i;
-  }
-
-  size_t i; // Index into ring_offset, ranges over {0,1}
+  ring_out_edge_iterator_position p;
   vertex u; // Vertex whose out edges are iterated
   size_t n; // Size of the graph
 };
+
 
 // IncidenceGraph valid expressions
 boost::graph_traits<implicit_ring_graph>::vertex_descriptor
@@ -133,8 +153,8 @@ inline std::pair<out_iter, out_iter>
 out_edges(boost::graph_traits<implicit_ring_graph>::vertex_descriptor u,
           implicit_ring_graph g) {
   return std::pair<out_iter, out_iter>(
-    out_iter(0, u, g),    // The first iterator position
-    out_iter(2, u, g) );  // The last iterator position
+    out_iter(PREV, u, g),   // The first iterator position
+    out_iter(END, u, g) );  // The last iterator position
 }
 
 
