@@ -281,9 +281,9 @@ namespace implicit_ring {
                                 const graph&,
                                 edge_weight_map_key);
 
-  edge_weight_map_reference get(boost::edge_weight_t tag,
-                                const graph& g,
-                                edge_weight_map_key e) {
+  inline edge_weight_map_reference get(boost::edge_weight_t tag,
+                                       const graph& g,
+                                       edge_weight_map_key e) {
     return get(tag, g)[e];
   }
   
