@@ -125,6 +125,12 @@ namespace implicit_ring {
   typedef boost::graph_traits<graph>::edges_size_type edges_size_type;
 
 
+  // Tag values passed to an iterator constructor to specify whether it should
+  // be set to the start or the end of its range.
+  struct iterator_position {};
+  struct iterator_start:virtual public iterator_position {};
+  struct iterator_end:virtual public iterator_position {};
+
   /*
   Each vertex has two neighbors: the one that comes before it in the ring and
   the one that comes after.  The PREV and NEXT values correspond to these two
@@ -155,13 +161,15 @@ namespace implicit_ring {
       boost::forward_traversal_tag,
       edge_descriptor > {
   public:
-    ring_out_edge_iterator():m_p(PREV),m_u(0),m_n(0) {};
-    explicit ring_out_edge_iterator(out_edge_iterator_position p,
+    ring_out_edge_iterator():m_n(0),m_u(0),m_p(PREV) {};
+    explicit ring_out_edge_iterator(const graph& g,
                                     vertex_descriptor u,
-                                    const graph& g):
-                                    m_p(p),
-                                    m_u(u),
-                                    m_n( g.n() ) {};
+                                    iterator_start):
+                                    m_n(g.n()),m_u(u),m_p(PREV) {};
+    explicit ring_out_edge_iterator(const graph& g,
+                                    vertex_descriptor u,
+                                    iterator_end):
+                                    m_n(g.n()),m_u(u),m_p(END) {};
 
   private:
     friend class boost::iterator_core_access;
@@ -183,9 +191,9 @@ namespace implicit_ring {
       return edge_descriptor(m_u, v);
     }
 
-    out_edge_iterator_position m_p;
-    vertex_descriptor m_u; // Vertex whose out edges are iterated
     size_t m_n; // Size of the graph
+    vertex_descriptor m_u; // Vertex whose out edges are iterated
+    out_edge_iterator_position m_p; // Current offset into ring_offset array
   };
 
 
@@ -213,8 +221,8 @@ namespace implicit_ring {
   inline std::pair<out_edge_iterator, out_edge_iterator>
   out_edges(vertex_descriptor u, const graph& g) {
     return std::pair<out_edge_iterator, out_edge_iterator>(
-      out_edge_iterator(PREV, u, g),   // The first iterator position
-      out_edge_iterator(END, u, g) );  // The last iterator position
+      out_edge_iterator(g, u, iterator_start()),  // The first iterator position
+      out_edge_iterator(g, u, iterator_end()) );  // The last iterator position
   }
 
 
@@ -241,11 +249,6 @@ namespace implicit_ring {
       vertex_iterator(num_vertices(g)) ); // The last iterator position
   }
 
-  // Tag values passed to the constructor of ring_edge_iterator.
-  struct edge_iterator_position {};
-  struct edge_iterator_start:virtual public edge_iterator_position {};
-  struct edge_iterator_end:virtual public edge_iterator_position {};
-
   /*
   Iterator over edges in a ring graph.
   
@@ -259,9 +262,9 @@ namespace implicit_ring {
       edge_descriptor > {
   public:
     ring_edge_iterator():m_g(NULL),m_vi(0) {};
-    explicit ring_edge_iterator(const graph& g, edge_iterator_start):
+    explicit ring_edge_iterator(const graph& g, iterator_start):
       m_g((graph *)&g),m_vi(vertices(g).first) {};
-    explicit ring_edge_iterator(const graph& g, edge_iterator_end):
+    explicit ring_edge_iterator(const graph& g, iterator_end):
       m_g((graph *)&g),m_vi(vertices(g).second) {};
 
     ring_edge_iterator& operator=(ring_edge_iterator const& other) {
@@ -285,10 +288,8 @@ namespace implicit_ring {
       return *(out_edges(*m_vi, *m_g).first);
     }
 
-    // The graph being iterated over
-    graph *m_g;
-    // Current vertex
-    vertex_iterator m_vi;
+    graph *m_g; // The graph being iterated over
+    vertex_iterator m_vi; // Current vertex
   };
 
 
@@ -297,8 +298,8 @@ namespace implicit_ring {
   
   inline std::pair<edge_iterator, edge_iterator> edges(const graph& g) {
     return std::pair<edge_iterator, edge_iterator>(
-      ring_edge_iterator(g, edge_iterator_start()),
-      ring_edge_iterator(g, edge_iterator_end()) );
+      ring_edge_iterator(g, iterator_start()),
+      ring_edge_iterator(g, iterator_end()) );
   }
   
   edges_size_type num_edges(const graph&);
