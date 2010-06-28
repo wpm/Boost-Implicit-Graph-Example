@@ -4,6 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <boost/graph/adjacency_iterator.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -96,6 +97,10 @@ namespace implicit_ring {
     // edges.
     typedef ring_incident_edge_iterator in_edge_iterator;
 
+    // AdjacencyGraph associated types
+    typedef boost::adjacency_iterator_generator<graph>::type
+      adjacency_iterator;
+
     // VertexListGraph associated types
     typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
     typedef size_t vertices_size_type;
@@ -103,11 +108,6 @@ namespace implicit_ring {
     // EdgeListGraph associated types
     typedef ring_edge_iterator edge_iterator;
     typedef size_t edges_size_type;
-
-    // The following additional types are not required by any of the concepts
-    // modeled here.  They are still declared here because graph_traits expects
-    // them to be in the graph class.
-    typedef void adjacency_iterator;
 
     graph(size_t n):m_n(n) {};
 
@@ -124,6 +124,7 @@ namespace implicit_ring {
   typedef boost::graph_traits<graph>::edge_descriptor edge_descriptor;
   typedef boost::graph_traits<graph>::out_edge_iterator out_edge_iterator;
   typedef boost::graph_traits<graph>::in_edge_iterator in_edge_iterator;
+  typedef boost::graph_traits<graph>::adjacency_iterator adjacency_iterator;
   typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
   typedef boost::graph_traits<graph>::vertex_iterator vertex_iterator;
   typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
