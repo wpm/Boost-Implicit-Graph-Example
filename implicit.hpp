@@ -260,17 +260,9 @@ namespace implicit_ring {
   public:
     ring_edge_iterator():m_g(NULL),m_vi(0) {};
     explicit ring_edge_iterator(const graph& g, edge_iterator_start):
-      m_g((graph *)&g) {
-      vertex_iterator vi, vi_end;
-      tie(vi, vi_end) = vertices(g);
-      m_vi = vi;
-    };
+      m_g((graph *)&g),m_vi(vertices(g).first) {};
     explicit ring_edge_iterator(const graph& g, edge_iterator_end):
-      m_g((graph *)&g) {
-      vertex_iterator vi, vi_end;
-      tie(vi, vi_end) = vertices(g);
-      m_vi = vi_end;
-    };
+      m_g((graph *)&g),m_vi(vertices(g).second) {};
 
     ring_edge_iterator& operator=(ring_edge_iterator const& other) {
       if (this != &other) {
@@ -290,9 +282,7 @@ namespace implicit_ring {
     }
 
     edge_descriptor dereference() const {
-      out_edge_iterator ei, ei_end;
-      tie(ei, ei_end) = out_edges(*m_vi, *m_g);
-      return *ei;
+      return *(out_edges(*m_vi, *m_g).first);
     }
 
     // The graph being iterated over
