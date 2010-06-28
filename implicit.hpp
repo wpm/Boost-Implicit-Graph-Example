@@ -12,9 +12,10 @@
 
 
 /*
-The file defines a ring-shaped graph usng the boost graph library.
+This file defines a simple, read-only, implicit ring graph using the boost
+graph library.
 
-The ring graph is an undirected graph of size n whose vertices indexed are by
+A ring graph is an undirected graph of size n whose vertices indexed are by
 integer and arranged sequentially so that each vertex i is adjacent
 to i-1 for i>0 and i+1 for i<n-1.  Vertex 0 is also adjacent to vertex n-1.
 
@@ -26,13 +27,14 @@ For example, a ring graph of size n=5 looks like this:
                 |      |
                 3 ---- 2
 
-Each edge has a read-only floating point weight associated with it.
+Additionally, each edge has a read-only floating point weight associated with
+it.  Here all edges have a weight of 1.
 
 The graph is defined inside the implicit_ring namespace.  Various aspects of
 the graph are implemented by the following structures:
 
   implicit_ring::graph
-    Defines types for the Graph and IncidenceGraph concepts
+    Defines types for the concepts this graph models
 
   implicit_ring::ring_incident_edge_iterator
     Implements the ring topology
@@ -45,6 +47,14 @@ the graph are implemented by the following structures:
 
 Along with the various valid expression functions, these define a model of a
 Boost Graph Library graph concept.
+
+This object models the following concepts:
+  Graph
+  IncidenceGraph
+  BidirectionalGraph
+  VertexListGraph
+  EdgeListGraph
+  ReadablePropertyGraph
 */
 
 // Forward declarations
@@ -68,11 +78,13 @@ namespace boost {
 }
 
 namespace implicit_ring {
+  // Tag values that specify the traversal type in graph::traversal_category.
   struct ring_traversal_catetory:
     virtual public boost::bidirectional_graph_tag,
     virtual public boost::vertex_list_graph_tag,
     virtual public boost::edge_list_graph_tag
     {};
+
   /*
   Undirected graph of vertices arranged in a ring shape.
 
@@ -109,10 +121,12 @@ namespace implicit_ring {
     typedef ring_edge_iterator edge_iterator;
     typedef size_t edges_size_type;
 
+    // This type is not part of a graph concept, but is used to return the
+    // default vertex index map used by the Dijkstra search algorithm.
+    typedef vertex_descriptor vertex_property_type;
+
     graph(size_t n):m_n(n) {};
-
     size_t n() const {return m_n;}
-
   private:
     // The number of vertices in the graph.
     size_t m_n;
@@ -139,8 +153,8 @@ namespace implicit_ring {
   struct iterator_end:virtual public iterator_position {};
 
   /*
-  Each vertex has two neighbors: the one that comes before it in the ring and
-  the one that comes after.  The PREV and NEXT values correspond to these two
+  Each vertex has two neighbors: the one that comes after it in the ring and
+  the one that comes before.  The NEXT and PREV values correspond to these two
   neighbors, while END is a sentinel value.  These are used as offsets into the
   ring_offset array in ring_incident_edge_iterator::dereference.
 
@@ -181,7 +195,7 @@ namespace implicit_ring {
 
     void increment() {m_p++;}
 
-    bool equal(ring_incident_edge_iterator const& other) const {
+    bool equal(const ring_incident_edge_iterator& other) const {
       return this->m_p == other.m_p;
     }
 
@@ -207,7 +221,7 @@ namespace implicit_ring {
 
   inline vertex_descriptor
   source(edge_descriptor e, const graph& g) {
-    // The first vertex in the edge is the source.
+    // The first vertex in the edge pair is the source.
     return e.first;
   }
 
@@ -216,7 +230,7 @@ namespace implicit_ring {
 
   inline vertex_descriptor
   target(edge_descriptor e, const graph& g) {
-   // The second vertex in the edge is the target.
+   // The second vertex in the edge pair is the target.
    return e.second;
   }
 
@@ -226,8 +240,8 @@ namespace implicit_ring {
   inline std::pair<out_edge_iterator, out_edge_iterator>
   out_edges(vertex_descriptor u, const graph& g) {
     return std::pair<out_edge_iterator, out_edge_iterator>(
-      out_edge_iterator(g, u, iterator_start()),  // The first iterator position
-      out_edge_iterator(g, u, iterator_end()) );  // The last iterator position
+      out_edge_iterator(g, u, iterator_start()),// The first iterator position
+      out_edge_iterator(g, u, iterator_end()) );// The last iterator position
   }
 
 
@@ -246,7 +260,7 @@ namespace implicit_ring {
 
   inline std::pair<in_edge_iterator, in_edge_iterator>
   in_edges(vertex_descriptor u, const graph& g) {
-    // The in_edges and out_edges are the same in an undirected graph.
+    // The in-edges and out-edges are the same in an undirected graph.
     return out_edges(u, g);
   }
 
@@ -300,7 +314,7 @@ namespace implicit_ring {
     explicit ring_edge_iterator(const graph& g, iterator_end):
       m_g((graph *)&g),m_vi(vertices(g).second) {};
 
-    ring_edge_iterator& operator=(ring_edge_iterator const& other) {
+    ring_edge_iterator& operator=(const ring_edge_iterator& other) {
       if (this != &other) {
         m_g = other.m_g;
         m_vi = other.m_vi;
@@ -313,11 +327,12 @@ namespace implicit_ring {
 
     void increment() { m_vi++;}
 
-    bool equal(ring_edge_iterator const& other) const {
+    bool equal(const ring_edge_iterator& other) const {
       return this->m_vi == other.m_vi;
     }
 
     edge_descriptor dereference() const {
+      // The first element in the incident edge list of the current vertex.
       return *(out_edges(*m_vi, *m_g).first);
     }
 
@@ -393,5 +408,16 @@ namespace implicit_ring {
                                        edge_weight_map_key e) {
     return get(tag, g)[e];
   }
-  
+
+
+  // This expression is not part of a graph concept, but is used to return the
+  // default vertex index map used by the Dijkstra search algorithm.
+  boost::identity_property_map get(boost::vertex_index_t, const graph&);
+
+  boost::identity_property_map get(boost::vertex_index_t, const graph&) {
+    // The vertex descriptors are already unsigned integer indices, so just
+    // return an identity map.
+    return boost::identity_property_map();
+  }
+
 }

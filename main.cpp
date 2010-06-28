@@ -55,11 +55,11 @@ int main (int argc, char const *argv[]) {
   // Print all the edges in the graph along with their weights.
   //
   // Edges and weights
-  // <0, 4> weight 1
-  // <1, 0> weight 1
-  // <2, 1> weight 1
-  // <3, 2> weight 1
-  // <4, 3> weight 1
+  // <0, 1> weight 1
+  // <1, 2> weight 1
+  // <2, 3> weight 1
+  // <3, 4> weight 1
+  // <4, 0> weight 1
   // 5 edges
   std::cout << "Edges and weights" << std::endl;
   edge_iterator ei, ei_end;
@@ -82,11 +82,7 @@ int main (int argc, char const *argv[]) {
   std::vector<edge_weight_map_reference> dist(num_vertices(g));
 
   boost::dijkstra_shortest_paths(g, source,
-          boost::predecessor_map(&pred[0]).
-          distance_map(&dist[0]).
-          // The identity property map tells the Dijkstra algorithm that
-          // vertex descriptors may be used as array indexes.
-          vertex_index_map(boost::identity_property_map()) );
+          boost::predecessor_map(&pred[0]).distance_map(&dist[0]) );
 
   std::cout << "Dijkstra search from vertex " << source << std::endl;
   for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
