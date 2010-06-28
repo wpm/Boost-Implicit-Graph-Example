@@ -55,11 +55,11 @@ int main (int argc, char const *argv[]) {
   // Print all the edges in the graph along with their weights.
   //
   // Edges and weights
-  // <0, 4> weight 1
-  // <1, 0> weight 1
-  // <2, 1> weight 1
-  // <3, 2> weight 1
-  // <4, 3> weight 1
+  // <0, 1> weight 1
+  // <1, 2> weight 1
+  // <2, 3> weight 1
+  // <3, 4> weight 1
+  // <4, 0> weight 1
   // 5 edges
   std::cout << "Edges and weights" << std::endl;
   edge_iterator ei, ei_end;
