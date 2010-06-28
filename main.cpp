@@ -16,6 +16,7 @@ int main (int argc, char const *argv[]) {
   // Check the concepts that graph models.
   boost::function_requires< boost::IncidenceGraphConcept<graph> >();
   boost::function_requires< boost::VertexListGraphConcept<graph> >();
+  // boost::function_requires< boost::EdgeListGraphConcept<graph> >();
 
   boost::function_requires<
     boost::ReadablePropertyMapConcept<const_edge_weight_map,

@@ -50,6 +50,7 @@ Boost Graph Library graph concept.
 namespace implicit_ring {
   class graph;
   class ring_out_edge_iterator;
+  class ring_edge_iterator;
   struct edge_weight_map;
 }
 
@@ -67,7 +68,8 @@ namespace boost {
 
 namespace implicit_ring {
   struct ring_traversal_catetory:virtual public boost::incidence_graph_tag,
-                                 virtual public boost::vertex_list_graph_tag
+                                 virtual public boost::vertex_list_graph_tag,
+                                 virtual public boost::edge_list_graph_tag
                                  {};
   /*
   Undirected graph of vertices arranged in a ring shape.
@@ -92,13 +94,15 @@ namespace implicit_ring {
     typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
     typedef size_t vertices_size_type;
 
+    // EdgeListGraph associated types
+    typedef ring_edge_iterator edge_iterator;
+    typedef size_t edges_size_type;
+
     // The following additional types are not required by any of the concepts
     // modeled here.  They are still declared here because graph_traits expects
     // them to be in the graph class.
-    typedef void adjacency_iterator;
-    typedef void edges_size_type;
     typedef void in_edge_iterator;
-    typedef void edge_iterator;
+    typedef void adjacency_iterator;
 
     graph(size_t n):m_n(n) {};
 
@@ -117,6 +121,8 @@ namespace implicit_ring {
   typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
   typedef boost::graph_traits<graph>::vertex_iterator vertex_iterator;
   typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
+  typedef boost::graph_traits<graph>::edge_iterator edge_iterator;
+  typedef boost::graph_traits<graph>::edges_size_type edges_size_type;
 
 
   /*
@@ -233,6 +239,73 @@ namespace implicit_ring {
     return std::pair<vertex_iterator, vertex_iterator>(
       vertex_iterator(0),                 // The first iterator position
       vertex_iterator(num_vertices(g)) ); // The last iterator position
+  }
+
+  // Tag values passed to the constructor of ring_edge_iterator.
+  struct edge_iterator_position {};
+  struct edge_iterator_start:virtual public edge_iterator_position {};
+  struct edge_iterator_end:virtual public edge_iterator_position {};
+
+  /*
+  Iterator over edges in a ring graph.
+  
+  This object iterates over all the vertices in the graph, then for each
+  vertex returns its first outgoing edge.
+  */
+  class ring_edge_iterator:public boost::iterator_facade <
+      ring_edge_iterator,
+      edge_descriptor,
+      boost::forward_traversal_tag,
+      edge_descriptor > {
+  public:
+    // ring_edge_iterator():m_g(0),m_vi(0) {};
+    explicit ring_edge_iterator(const graph& g, edge_iterator_start): m_g(g) {
+      vertex_iterator vi, vi_end;
+      tie(vi, vi_end) = vertices(g);
+      m_vi = vi;
+    };
+    explicit ring_edge_iterator(const graph& g, edge_iterator_end): m_g(g) {
+      vertex_iterator vi, vi_end;
+      tie(vi, vi_end) = vertices(g);
+      m_vi = vi_end;
+    };
+
+  private:
+    friend class boost::iterator_core_access;
+
+    void increment() { m_vi++;}
+
+    bool equal(ring_edge_iterator const& other) const {
+      return this->m_vi == other.m_vi;
+    }
+
+    edge_descriptor dereference() const {
+      out_edge_iterator ei, ei_end;
+      tie(ei, ei_end) = out_edges(*m_vi, m_g);
+      return *ei;
+    }
+
+    // The graph being iterated over
+    const graph& m_g;
+    // Current vertex
+    vertex_iterator m_vi;
+  };
+
+
+  // EdgeListGraph valid expressions
+  std::pair<edge_iterator, edge_iterator> edges(const graph&);
+  
+  inline std::pair<edge_iterator, edge_iterator> edges(const graph& g) {
+    return std::pair<edge_iterator, edge_iterator>(
+      ring_edge_iterator(g, edge_iterator_start()),
+      ring_edge_iterator(g, edge_iterator_end()) );
+  }
+  
+  edges_size_type num_edges(const graph&);
+
+  inline edges_size_type num_edges(const graph& g) {
+    // There are as many edges as there are vertices.
+    return g.n();
   }
 
   /*
