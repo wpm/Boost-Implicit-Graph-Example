@@ -30,14 +30,16 @@ int main (int argc, char const *argv[]) {
   graph g(5);
   const_edge_weight_map m = get(boost::edge_weight, g);
 
-  // Print the outgoing edges of all vertices along with their weights.
+  // Print the outgoing edges of all the vertices.
   //
-  // Vertex 0: <0, 4>(1)  <0, 1>(1)
-  // Vertex 1: <1, 0>(1)  <1, 2>(1)
-  // Vertex 2: <2, 1>(1)  <2, 3>(1)
-  // Vertex 3: <3, 2>(1)  <3, 4>(1)
-  // Vertex 4: <4, 3>(1)  <4, 0>(1)
-  std::cout << "Vertices and incident edges" << std::endl;
+  // Vertices and incident edges
+  // Vertex 0: <0, 4>  <0, 1>
+  // Vertex 1: <1, 0>  <1, 2>
+  // Vertex 2: <2, 1>  <2, 3>
+  // Vertex 3: <3, 2>  <3, 4>
+  // Vertex 4: <4, 3>  <4, 0>
+  // 5 vertices
+  std::cout << "Vertices and outgoing edges" << std::endl;
   vertex_iterator vi, vi_end;
   for (tie(vi, vi_end) = vertices(g); vi != vi_end; vi++) {
     vertex_descriptor u = *vi;
@@ -49,17 +51,25 @@ int main (int argc, char const *argv[]) {
     }
     std::cout << std::endl;
   }
-  std::cout << std::endl;
+  std::cout << num_vertices(g) << " vertices" << std::endl << std::endl;
 
-  // Print all the edges in the graph
-  // std::cout << "Edges and weights" << std::endl;
-  // edge_iterator ei, ei_end;
-  // for (tie(ei, ei_end) = edges(g); ei != ei_end; ei++) {
-  //   edge_descriptor e = *ei;
-  //   std::cout << "<" << e.first << ", " << e.second << ">"
-  //             << "(" << get(boost::edge_weight, g, e) << ")" << std::endl;
-  // }
-  // std::cout << std::endl;
+  // Print all the edges in the graph along with their weights.
+  //
+  // Edges and weights
+  // <0, 4> weight 1
+  // <1, 0> weight 1
+  // <2, 1> weight 1
+  // <3, 2> weight 1
+  // <4, 3> weight 1
+  // 5 edges
+  std::cout << "Edges and weights" << std::endl;
+  edge_iterator ei, ei_end;
+  for (tie(ei, ei_end) = edges(g); ei != ei_end; ei++) {
+    edge_descriptor e = *ei;
+    std::cout << "<" << e.first << ", " << e.second << ">"
+              << " weight " << get(boost::edge_weight, g, e) << std::endl;
+  }
+  std::cout << num_edges(g) << " edges"  << std::endl << std::endl;
 
   // Do a Dijkstra search from vertex 0.
   //
