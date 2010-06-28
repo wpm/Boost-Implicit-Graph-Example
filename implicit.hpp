@@ -140,7 +140,7 @@ namespace implicit_ring {
   A postfix increment operator is defined for use in
   ring_out_edge_iterator::increment.
   */
-  typedef enum {PREV, NEXT, END} out_edge_iterator_position;
+  typedef enum {NEXT, PREV, END} out_edge_iterator_position;
 
   inline out_edge_iterator_position
   operator++(out_edge_iterator_position &rs, int) {
@@ -152,7 +152,7 @@ namespace implicit_ring {
 
   Note that in an undirected graph, all the incident edges are outgoing edges.
 
-  For vertex i, this returns edge (i, i-1) and then edge (i, i+1), wrapping
+  For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
   around the end of the ring as needed.
   */
   class ring_out_edge_iterator:public boost::iterator_facade <
@@ -161,11 +161,11 @@ namespace implicit_ring {
       boost::forward_traversal_tag,
       edge_descriptor > {
   public:
-    ring_out_edge_iterator():m_n(0),m_u(0),m_p(PREV) {};
+    ring_out_edge_iterator():m_n(0),m_u(0),m_p(NEXT) {};
     explicit ring_out_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_start):
-                                    m_n(g.n()),m_u(u),m_p(PREV) {};
+                                    m_n(g.n()),m_u(u),m_p(NEXT) {};
     explicit ring_out_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_end):
@@ -181,7 +181,7 @@ namespace implicit_ring {
     }
 
     edge_descriptor dereference() const {
-      static const int ring_offset[] = {-1, 1};
+      static const int ring_offset[] = {1, -1};
       vertex_descriptor v;
 
       if (m_p == PREV && m_u == 0)

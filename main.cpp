@@ -17,7 +17,6 @@ int main (int argc, char const *argv[]) {
   boost::function_requires< boost::IncidenceGraphConcept<graph> >();
   boost::function_requires< boost::VertexListGraphConcept<graph> >();
   boost::function_requires< boost::EdgeListGraphConcept<graph> >();
-
   boost::function_requires<
     boost::ReadablePropertyMapConcept<const_edge_weight_map,
                                       edge_descriptor> >();
@@ -32,12 +31,12 @@ int main (int argc, char const *argv[]) {
 
   // Print the outgoing edges of all the vertices.
   //
-  // Vertices and incident edges
-  // Vertex 0: <0, 4>  <0, 1>
-  // Vertex 1: <1, 0>  <1, 2>
-  // Vertex 2: <2, 1>  <2, 3>
-  // Vertex 3: <3, 2>  <3, 4>
-  // Vertex 4: <4, 3>  <4, 0>
+  // Vertices and outgoing edges
+  // Vertex 0: <0, 1>  <0, 4>
+  // Vertex 1: <1, 2>  <1, 0>
+  // Vertex 2: <2, 3>  <2, 1>
+  // Vertex 3: <3, 4>  <3, 2>
+  // Vertex 4: <4, 0>  <4, 3>
   // 5 vertices
   std::cout << "Vertices and outgoing edges" << std::endl;
   vertex_iterator vi, vi_end;
