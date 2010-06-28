@@ -31,7 +31,7 @@ The graph is defined inside the implicit_ring namespace.  Various aspects of
 the graph are implemented by the following structures:
 
   implicit_ring::graph
-    Defines types for the Graph and IncidenceGraph concepts
+    Defines types for the concepts this graph models
 
   implicit_ring::ring_incident_edge_iterator
     Implements the ring topology
@@ -109,10 +109,12 @@ namespace implicit_ring {
     // them to be in the graph class.
     typedef void adjacency_iterator;
 
+    // This type is not part of a graph concept, but is used to return the
+    // default vertex index map used by the Dijkstra search algorithm.
+    typedef vertex_descriptor vertex_property_type;
+
     graph(size_t n):m_n(n) {};
-
     size_t n() const {return m_n;}
-
   private:
     // The number of vertices in the graph.
     size_t m_n;
@@ -129,7 +131,7 @@ namespace implicit_ring {
   typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
   typedef boost::graph_traits<graph>::edge_iterator edge_iterator;
   typedef boost::graph_traits<graph>::edges_size_type edges_size_type;
-
+  typedef graph::vertex_property_type vertex_property_type;
 
   // Tag values passed to an iterator constructor to specify whether it should
   // be set to the start or the end of its range.
@@ -392,5 +394,14 @@ namespace implicit_ring {
                                        edge_weight_map_key e) {
     return get(tag, g)[e];
   }
-  
+
+
+  // This expression is not part of a graph concept, but is used to return the
+  // default vertex index map used by the Dijkstra search algorithm.
+  boost::identity_property_map get(boost::vertex_index_t, const graph&);
+
+  boost::identity_property_map get(boost::vertex_index_t, const graph&) {
+    return boost::identity_property_map();
+  }
+
 }

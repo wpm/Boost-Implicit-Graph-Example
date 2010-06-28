@@ -82,11 +82,7 @@ int main (int argc, char const *argv[]) {
   std::vector<edge_weight_map_reference> dist(num_vertices(g));
 
   boost::dijkstra_shortest_paths(g, source,
-          boost::predecessor_map(&pred[0]).
-          distance_map(&dist[0]).
-          // The identity property map tells the Dijkstra algorithm that
-          // vertex descriptors may be used as array indexes.
-          vertex_index_map(boost::identity_property_map()) );
+          boost::predecessor_map(&pred[0]).distance_map(&dist[0]) );
 
   std::cout << "Dijkstra search from vertex " << source << std::endl;
   for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
