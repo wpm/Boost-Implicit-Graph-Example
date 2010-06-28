@@ -258,17 +258,27 @@ namespace implicit_ring {
       boost::forward_traversal_tag,
       edge_descriptor > {
   public:
-    // ring_edge_iterator():m_g(0),m_vi(0) {};
-    explicit ring_edge_iterator(const graph& g, edge_iterator_start): m_g(g) {
+    // ring_edge_iterator():m_g(&graph(0)),m_vi(0) {};
+    explicit ring_edge_iterator(const graph& g, edge_iterator_start):
+      m_g((graph&)g) {
       vertex_iterator vi, vi_end;
       tie(vi, vi_end) = vertices(g);
       m_vi = vi;
     };
-    explicit ring_edge_iterator(const graph& g, edge_iterator_end): m_g(g) {
+    explicit ring_edge_iterator(const graph& g, edge_iterator_end):
+      m_g((graph&)g) {
       vertex_iterator vi, vi_end;
       tie(vi, vi_end) = vertices(g);
       m_vi = vi_end;
     };
+
+    ring_edge_iterator& operator=(ring_edge_iterator const& other) {
+      if (this != &other) {
+        m_g = other.m_g;
+        m_vi = other.m_vi;
+      }
+      return *this;
+    }
 
   private:
     friend class boost::iterator_core_access;
@@ -286,7 +296,7 @@ namespace implicit_ring {
     }
 
     // The graph being iterated over
-    const graph& m_g;
+    graph& m_g;
     // Current vertex
     vertex_iterator m_vi;
   };

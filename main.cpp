@@ -16,7 +16,7 @@ int main (int argc, char const *argv[]) {
   // Check the concepts that graph models.
   boost::function_requires< boost::IncidenceGraphConcept<graph> >();
   boost::function_requires< boost::VertexListGraphConcept<graph> >();
-  // boost::function_requires< boost::EdgeListGraphConcept<graph> >();
+  boost::function_requires< boost::EdgeListGraphConcept<graph> >();
 
   boost::function_requires<
     boost::ReadablePropertyMapConcept<const_edge_weight_map,
@@ -37,7 +37,7 @@ int main (int argc, char const *argv[]) {
   // Vertex 2: <2, 1>(1)  <2, 3>(1)
   // Vertex 3: <3, 2>(1)  <3, 4>(1)
   // Vertex 4: <4, 3>(1)  <4, 0>(1)
-  std::cout << "Vertices, edges, and weights" << std::endl;
+  std::cout << "Vertices and incident edges" << std::endl;
   vertex_iterator vi, vi_end;
   for (tie(vi, vi_end) = vertices(g); vi != vi_end; vi++) {
     vertex_descriptor u = *vi;
@@ -45,12 +45,21 @@ int main (int argc, char const *argv[]) {
     out_edge_iterator ei, ei_end;
     for (tie(ei, ei_end) = out_edges(u, g); ei != ei_end; ei++) {
       edge_descriptor e = *ei;
-      std::cout << "<" << e.first << ", " << e.second << ">"
-                << "(" << get(boost::edge_weight, g, e) << ")" << "  ";
+      std::cout << "<" << e.first << ", " << e.second << ">" << "  ";
     }
     std::cout << std::endl;
   }
   std::cout << std::endl;
+
+  // Print all the edges in the graph
+  // std::cout << "Edges and weights" << std::endl;
+  // edge_iterator ei, ei_end;
+  // for (tie(ei, ei_end) = edges(g); ei != ei_end; ei++) {
+  //   edge_descriptor e = *ei;
+  //   std::cout << "<" << e.first << ", " << e.second << ">"
+  //             << "(" << get(boost::edge_weight, g, e) << ")" << std::endl;
+  // }
+  // std::cout << std::endl;
 
   // Do a Dijkstra search from vertex 0.
   //
