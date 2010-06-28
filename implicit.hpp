@@ -33,7 +33,7 @@ the graph are implemented by the following structures:
   implicit_ring::graph
     Defines types for the Graph and IncidenceGraph concepts
 
-  implicit_ring::ring_out_edge_iterator
+  implicit_ring::ring_incident_edge_iterator
     Implements the ring topology
 
   implicit_ring::edge_weight_map
@@ -49,7 +49,7 @@ Boost Graph Library graph concept.
 // Forward declarations
 namespace implicit_ring {
   class graph;
-  class ring_out_edge_iterator;
+  class ring_incident_edge_iterator;
   class ring_edge_iterator;
   struct edge_weight_map;
 }
@@ -67,10 +67,11 @@ namespace boost {
 }
 
 namespace implicit_ring {
-  struct ring_traversal_catetory:virtual public boost::incidence_graph_tag,
-                                 virtual public boost::vertex_list_graph_tag,
-                                 virtual public boost::edge_list_graph_tag
-                                 {};
+  struct ring_traversal_catetory:
+    virtual public boost::bidirectional_graph_tag,
+    virtual public boost::vertex_list_graph_tag,
+    virtual public boost::edge_list_graph_tag
+    {};
   /*
   Undirected graph of vertices arranged in a ring shape.
 
@@ -87,8 +88,13 @@ namespace implicit_ring {
 
     // IncidenceGraph associated types
     typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
-    typedef ring_out_edge_iterator out_edge_iterator;
+    typedef ring_incident_edge_iterator out_edge_iterator;
     typedef size_t degree_size_type;
+
+    // BidirectionalGraph associated types
+    // Note that undirected graphs make no distinction between in- and out-
+    // edges.
+    typedef ring_incident_edge_iterator in_edge_iterator;
 
     // VertexListGraph associated types
     typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
@@ -101,7 +107,6 @@ namespace implicit_ring {
     // The following additional types are not required by any of the concepts
     // modeled here.  They are still declared here because graph_traits expects
     // them to be in the graph class.
-    typedef void in_edge_iterator;
     typedef void adjacency_iterator;
 
     graph(size_t n):m_n(n) {};
@@ -118,6 +123,7 @@ namespace implicit_ring {
   typedef boost::graph_traits<graph>::vertex_descriptor vertex_descriptor;
   typedef boost::graph_traits<graph>::edge_descriptor edge_descriptor;
   typedef boost::graph_traits<graph>::out_edge_iterator out_edge_iterator;
+  typedef boost::graph_traits<graph>::in_edge_iterator in_edge_iterator;
   typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
   typedef boost::graph_traits<graph>::vertex_iterator vertex_iterator;
   typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
@@ -135,10 +141,10 @@ namespace implicit_ring {
   Each vertex has two neighbors: the one that comes before it in the ring and
   the one that comes after.  The PREV and NEXT values correspond to these two
   neighbors, while END is a sentinel value.  These are used as offsets into the
-  ring_offset array in ring_out_edge_iterator::dereference.
+  ring_offset array in ring_incident_edge_iterator::dereference.
 
   A postfix increment operator is defined for use in
-  ring_out_edge_iterator::increment.
+  ring_incident_edge_iterator::increment.
   */
   typedef enum {NEXT, PREV, END} out_edge_iterator_position;
 
@@ -148,25 +154,23 @@ namespace implicit_ring {
   }
 
   /*
-  Iterator over outgoing edges in a ring graph.
-
-  Note that in an undirected graph, all the incident edges are outgoing edges.
+  Iterator over edges incident on a vertex in a ring graph.
 
   For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
   around the end of the ring as needed.
   */
-  class ring_out_edge_iterator:public boost::iterator_facade <
-      ring_out_edge_iterator,
+  class ring_incident_edge_iterator:public boost::iterator_facade <
+      ring_incident_edge_iterator,
       edge_descriptor,
       boost::forward_traversal_tag,
       edge_descriptor > {
   public:
-    ring_out_edge_iterator():m_n(0),m_u(0),m_p(NEXT) {};
-    explicit ring_out_edge_iterator(const graph& g,
+    ring_incident_edge_iterator():m_n(0),m_u(0),m_p(NEXT) {};
+    explicit ring_incident_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_start):
                                     m_n(g.n()),m_u(u),m_p(NEXT) {};
-    explicit ring_out_edge_iterator(const graph& g,
+    explicit ring_incident_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_end):
                                     m_n(g.n()),m_u(u),m_p(END) {};
@@ -176,7 +180,7 @@ namespace implicit_ring {
 
     void increment() {m_p++;}
 
-    bool equal(ring_out_edge_iterator const& other) const {
+    bool equal(ring_incident_edge_iterator const& other) const {
       return this->m_p == other.m_p;
     }
 
@@ -233,6 +237,34 @@ namespace implicit_ring {
     // All vertices in a ring graph have two neighbors.
     return 2;
   }
+
+
+  // BidirectionalGraph valid expressions
+  std::pair<in_edge_iterator, in_edge_iterator>
+  in_edges(vertex_descriptor, const graph&);
+
+  inline std::pair<in_edge_iterator, in_edge_iterator>
+  in_edges(vertex_descriptor u, const graph& g) {
+    // The in_edges and out_edges are the same in an undirected graph.
+    return out_edges(u, g);
+  }
+
+  degree_size_type in_degree(vertex_descriptor, const graph&);
+
+  inline degree_size_type in_degree(vertex_descriptor u, const graph& g) {
+    // The in-degree and out-degree are both equal to the number of incident
+    // edges in an undirected graph.
+    return out_degree(u, g);
+  }
+
+  degree_size_type degree(vertex_descriptor, const graph&);
+
+  inline degree_size_type degree(vertex_descriptor u, const graph& g) {
+    // The in-degree and out-degree are both equal to the number of incident
+    // edges in an undirected graph.
+    return out_degree(u, g);
+  }
+
 
   // VertexListGraph valid expressions
   vertices_size_type num_vertices(const graph&);
