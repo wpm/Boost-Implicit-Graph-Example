@@ -12,43 +12,11 @@
 
 
 /*
-This file defines a simple, read-only, implicit ring graph using the boost
-graph library.
+This file defines a simple example of a read-only implicit weighted graph
+built using the Boost Graph Library. It can be used as a starting point for
+developers creating their own implicit graphs.
 
-A ring graph is an undirected graph of size n whose vertices indexed are by
-integer and arranged sequentially so that each vertex i is adjacent
-to i-1 for i>0 and i+1 for i<n-1.  Vertex 0 is also adjacent to vertex n-1.
-
-For example, a ring graph of size n=5 looks like this:
-
-                    0
-                  /   \
-                4      1
-                |      |
-                3 ---- 2
-
-Additionally, each edge has a read-only floating point weight associated with
-it.  Here all edges have a weight of 1.
-
-The graph is defined inside the implicit_ring namespace.  Various aspects of
-the graph are implemented by the following structures:
-
-  implicit_ring::graph
-    Defines types for the concepts this graph models
-
-  implicit_ring::ring_incident_edge_iterator
-    Implements the ring topology
-
-  implicit_ring::edge_weight_map
-    Defines a property map between edges and weights
-
-  boost::property_map<implicit_ring::graph, boost::edge_weight_t>
-    Associates the edges of the ring graph with the edge weight map
-
-Along with the various valid expression functions, these define a model of a
-Boost Graph Library graph concept.
-
-This object models the following concepts:
+The graph models the following concepts:
   Graph
   IncidenceGraph
   BidirectionalGraph
@@ -56,6 +24,55 @@ This object models the following concepts:
   VertexListGraph
   EdgeListGraph
   ReadablePropertyGraph
+
+The graph defined here is a ring graph, a graph whose vertices are arranged in
+a ring so that each vertex has exactly two neighbors. For example, here is a
+ring graph with five nodes.
+
+                                    0
+                                  /   \
+                                4      1
+                                |      |
+                                3 ---- 2
+
+The edges of this graph are undirected and each has a weight of one.
+
+The vertices indexed are by integer and arranged sequentially so that each
+vertex i is adjacent to i-1 for i>0 and i+1 for i<n-1.  Vertex 0 is also
+adjacent to vertex n-1.  Edges are indexed by pairs of vertex indices.
+
+The graph is defined inside the implicit_ring namespace.  Various aspects of
+the graph are modeled by the following classes:
+
+  graph
+    The graph class instantiated by a client. This defines types for the
+    concepts that this graph models and keeps track of the number of vertices
+    in the graph.
+
+  ring_incident_edge_iterator
+    This is an iterator that ranges over edges incident on a given vertex. The
+    behavior of this iterator defines the ring topology. Other iterators that
+    make reference to the graph structure are defined in terms of this one.
+
+  edge_weight_map
+    This defines a property map between edges and weights. Here all edges have
+    a weight of 1. This can be changed by modifying this class.
+
+  boost::property_map<graph, boost::edge_weight_t>
+    This tells Boost to associate the edges of the ring graph with the edge
+    weight map.
+
+Along with these classes, the graph concepts are modeled by various valid
+expression functions defined below.  This header also defines a
+get(boost::vertex_index_t, const graph&) function which isn’t part of a graph
+concept, but is used for Dijkstra search.
+
+
+Apart from graph, client code should not instantiate the model classes
+directly. Instead it should access them and their properties via
+graph_traits<...> and property_traits<...> lookups. For convenience,
+this header defines short names for all these properties that client code can
+use.
 */
 
 // Forward declarations
@@ -150,7 +167,7 @@ namespace implicit_ring {
 
 
   // Tag values passed to an iterator constructor to specify whether it should
-  // be set to the start or the end of its range.
+  // be created at the start or the end of its range.
   struct iterator_position {};
   struct iterator_start:virtual public iterator_position {};
   struct iterator_end:virtual public iterator_position {};

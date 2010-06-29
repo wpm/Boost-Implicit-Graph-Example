@@ -13,7 +13,9 @@
 int main (int argc, char const *argv[]) {
   using namespace implicit_ring;
 
-  // Check the concepts that graph models.
+  // Check the concepts that graph models.  This is included to demonstrate
+  // how concept checking works, but is not required for a working program
+  // since Boost algorithms do their own concept checking.
   boost::function_requires< boost::BidirectionalGraphConcept<graph> >();
   boost::function_requires< boost::AdjacencyGraphConcept<graph> >();
   boost::function_requires< boost::VertexListGraphConcept<graph> >();
