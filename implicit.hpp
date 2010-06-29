@@ -51,6 +51,7 @@ This object models the following concepts:
   Graph
   IncidenceGraph
   BidirectionalGraph
+  AdjacencyGraph
   VertexListGraph
   EdgeListGraph
   ReadablePropertyGraph
@@ -308,7 +309,7 @@ namespace implicit_ring {
     const graph* m_g;
   };
 
-
+  // AdjacencyGraph valid expressions
   std::pair<adjacency_iterator, adjacency_iterator>
   adjacent_vertices(vertex_descriptor, const graph&);
   
