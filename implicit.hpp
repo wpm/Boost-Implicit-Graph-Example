@@ -4,7 +4,6 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <boost/graph/adjacency_iterator.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -61,6 +60,7 @@ This object models the following concepts:
 namespace implicit_ring {
   class graph;
   class ring_incident_edge_iterator;
+  class ring_adjacency_iterator;
   class ring_edge_iterator;
   struct edge_weight_map;
 }
@@ -81,9 +81,11 @@ namespace implicit_ring {
   // Tag values that specify the traversal type in graph::traversal_category.
   struct ring_traversal_catetory:
     virtual public boost::bidirectional_graph_tag,
+    virtual public boost::adjacency_graph_tag,
     virtual public boost::vertex_list_graph_tag,
     virtual public boost::edge_list_graph_tag
     {};
+
 
   /*
   Undirected graph of vertices arranged in a ring shape.
@@ -110,8 +112,7 @@ namespace implicit_ring {
     typedef ring_incident_edge_iterator in_edge_iterator;
 
     // AdjacencyGraph associated types
-    typedef boost::adjacency_iterator_generator<graph>::type
-      adjacency_iterator;
+    typedef ring_adjacency_iterator adjacency_iterator;
 
     // VertexListGraph associated types
     typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
@@ -281,6 +282,44 @@ namespace implicit_ring {
   }
 
 
+  /*
+  Iterator over vertices adjacent to a given vertex.
+
+  This iterates over the target vertices of all the incident edges.
+  */
+  class ring_adjacency_iterator:public boost::iterator_adaptor<
+          ring_adjacency_iterator,
+          out_edge_iterator,
+          vertex_descriptor,
+          boost::use_default,
+          vertex_descriptor> {
+  public:
+    ring_adjacency_iterator() {};
+    ring_adjacency_iterator(const out_edge_iterator& ei, const graph* g):
+      ring_adjacency_iterator::iterator_adaptor_(ei),m_g(m_g) {};
+
+  private:
+    friend class boost::iterator_core_access;
+
+    vertex_descriptor dereference() const {
+      return target(*this->base(), *m_g);
+    }
+    
+    const graph* m_g;
+  };
+
+
+  std::pair<adjacency_iterator, adjacency_iterator>
+  adjacent_vertices(vertex_descriptor, const graph&);
+  
+  inline std::pair<adjacency_iterator, adjacency_iterator>
+  adjacent_vertices(vertex_descriptor u, const graph& g) {
+    return std::pair<adjacency_iterator, adjacency_iterator>(
+      adjacency_iterator(out_edge_iterator(g, u, iterator_start()), &g),
+      adjacency_iterator(out_edge_iterator(g, u, iterator_end()), &g));
+  }
+
+
   // VertexListGraph valid expressions
   vertices_size_type num_vertices(const graph&);
 
@@ -419,5 +458,4 @@ namespace implicit_ring {
     // return an identity map.
     return boost::identity_property_map();
   }
-
 }
