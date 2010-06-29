@@ -15,6 +15,7 @@ int main (int argc, char const *argv[]) {
 
   // Check the concepts that graph models.
   boost::function_requires< boost::BidirectionalGraphConcept<graph> >();
+  boost::function_requires< boost::AdjacencyGraphConcept<graph> >();
   boost::function_requires< boost::VertexListGraphConcept<graph> >();
   boost::function_requires< boost::EdgeListGraphConcept<graph> >();
   boost::function_requires<
@@ -38,15 +39,22 @@ int main (int argc, char const *argv[]) {
   // Vertex 3: <3, 4>  <3, 2>
   // Vertex 4: <4, 0>  <4, 3>
   // 5 vertices
-  std::cout << "Vertices and outgoing edges" << std::endl;
+  std::cout << "Vertices, outgoing edges, and adjacent vertices" << std::endl;
   vertex_iterator vi, vi_end;
   for (tie(vi, vi_end) = vertices(g); vi != vi_end; vi++) {
     vertex_descriptor u = *vi;
     std::cout << "Vertex " << u << ": ";
+    // Adjacenct edges
     out_edge_iterator ei, ei_end;
     for (tie(ei, ei_end) = out_edges(u, g); ei != ei_end; ei++) {
       edge_descriptor e = *ei;
       std::cout << "<" << e.first << ", " << e.second << ">" << "  ";
+    }
+    std::cout << " Adjacent vertices ";
+    // Adjacent vertices
+    adjacency_iterator ai, ai_end;
+    for (tie(ai, ai_end) = adjacent_vertices(u, g); ai != ai_end; ai++) {
+      std::cout << *ai << " ";
     }
     std::cout << std::endl;
   }
