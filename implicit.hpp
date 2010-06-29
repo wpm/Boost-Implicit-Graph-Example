@@ -4,6 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <boost/graph/adjacency_iterator.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -288,26 +289,22 @@ namespace implicit_ring {
 
   This iterates over the target vertices of all the incident edges.
   */
-  class ring_adjacency_iterator:public boost::iterator_adaptor<
-          ring_adjacency_iterator,
-          out_edge_iterator,
-          vertex_descriptor,
-          boost::use_default,
-          vertex_descriptor> {
+  class ring_adjacency_iterator:public boost::adjacency_iterator<
+    graph,
+    vertex_descriptor,
+    out_edge_iterator,
+    boost::use_default> {
   public:
+    typedef boost::adjacency_iterator<
+      graph,
+      vertex_descriptor,
+      out_edge_iterator,
+      boost::use_default> parent_class;
     ring_adjacency_iterator() {};
     ring_adjacency_iterator(const out_edge_iterator& ei, const graph* g):
-      ring_adjacency_iterator::iterator_adaptor_(ei),m_g(m_g) {};
-
-  private:
-    friend class boost::iterator_core_access;
-
-    vertex_descriptor dereference() const {
-      return target(*this->base(), *m_g);
-    }
-    
-    const graph* m_g;
+      parent_class(ei, g) {};
   };
+
 
   // AdjacencyGraph valid expressions
   std::pair<adjacency_iterator, adjacency_iterator>
