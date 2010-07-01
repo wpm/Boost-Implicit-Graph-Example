@@ -306,17 +306,17 @@ namespace implicit_ring {
 
   This iterates over the target vertices of all the incident edges.
   */
-  class ring_adjacency_iterator:public boost::adjacency_iterator<
+  class ring_adjacency_iterator:public boost::adjacency_iterator_generator<
     graph,
     vertex_descriptor,
-    out_edge_iterator,
-    boost::use_default> {
-  public:
-    typedef boost::adjacency_iterator<
+    out_edge_iterator>::type {
+    // The parent class is an iterator_adpator that turns an iterator over
+    // out edges into an iterator over adjacent vertices.
+    typedef boost::adjacency_iterator_generator<
       graph,
       vertex_descriptor,
-      out_edge_iterator,
-      boost::use_default> parent_class;
+      out_edge_iterator>::type parent_class;
+  public:
     ring_adjacency_iterator() {};
     ring_adjacency_iterator(const out_edge_iterator& ei, const graph* g):
       parent_class(ei, g) {};
