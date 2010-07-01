@@ -260,8 +260,8 @@ namespace implicit_ring {
   inline std::pair<out_edge_iterator, out_edge_iterator>
   out_edges(vertex_descriptor u, const graph& g) {
     return std::pair<out_edge_iterator, out_edge_iterator>(
-      out_edge_iterator(g, u, iterator_start()),// The first iterator position
-      out_edge_iterator(g, u, iterator_end()) );// The last iterator position
+      out_edge_iterator(g, u, iterator_start()),
+      out_edge_iterator(g, u, iterator_end()) );
   }
 
 
