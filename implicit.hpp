@@ -318,8 +318,14 @@ namespace implicit_ring {
       out_edge_iterator>::type parent_class;
   public:
     ring_adjacency_iterator() {};
-    ring_adjacency_iterator(const out_edge_iterator& ei, const graph* g):
-      parent_class(ei, g) {};
+    ring_adjacency_iterator(vertex_descriptor u,
+                            const graph& g,
+                            iterator_start):
+      parent_class(out_edge_iterator(g, u, iterator_start()), &g) {};
+    ring_adjacency_iterator(vertex_descriptor u,
+                            const graph& g,
+                            iterator_end):
+      parent_class(out_edge_iterator(g, u, iterator_end()), &g) {};
   };
 
 
@@ -330,8 +336,8 @@ namespace implicit_ring {
   inline std::pair<adjacency_iterator, adjacency_iterator>
   adjacent_vertices(vertex_descriptor u, const graph& g) {
     return std::pair<adjacency_iterator, adjacency_iterator>(
-      adjacency_iterator(out_edge_iterator(g, u, iterator_start()), &g),
-      adjacency_iterator(out_edge_iterator(g, u, iterator_end()), &g));
+      adjacency_iterator(u, g, iterator_start()),
+      adjacency_iterator(u, g, iterator_end()));
   }
 
 
