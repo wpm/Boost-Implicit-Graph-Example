@@ -199,7 +199,8 @@ namespace implicit_ring {
     explicit ring_incident_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_end):
-      ring_incident_edge_iterator::iterator_adaptor_(2),
+      // A graph with one vertex only has a single self-loop.
+      ring_incident_edge_iterator::iterator_adaptor_(g.n() > 1 ? 2:1),
       m_n(g.n()),m_u(u) {};
 
   private:
