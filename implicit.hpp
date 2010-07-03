@@ -174,66 +174,51 @@ namespace implicit_ring {
   struct iterator_end:virtual public iterator_position {};
 
   /*
-  Each vertex has two neighbors: the one that comes after it in the ring and
-  the one that comes before.  The NEXT and PREV values correspond to these two
-  neighbors, while END is a sentinel value.  These are used as offsets into the
-  ring_offset array in ring_incident_edge_iterator::dereference.
-
-  A postfix increment operator is defined for use in
-  ring_incident_edge_iterator::increment.
-  */
-  typedef enum {NEXT, PREV, END} out_edge_iterator_position;
-
-  inline out_edge_iterator_position
-  operator++(out_edge_iterator_position &rs, int) {
-    return rs = (out_edge_iterator_position)(rs + 1);
-  }
-
-  /*
   Iterator over edges incident on a vertex in a ring graph.
 
   For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
   around the end of the ring as needed.
+  
+  It is implemented with the boost::iterator_adaptor class, adapting an
+  offset into the dereference::ring_offset array.
   */
-  class ring_incident_edge_iterator:public boost::iterator_facade <
+  class ring_incident_edge_iterator:public boost::iterator_adaptor <
       ring_incident_edge_iterator,
+      boost::counting_iterator<size_t>,
       edge_descriptor,
-      boost::forward_traversal_tag,
+      boost::use_default,
       edge_descriptor > {
   public:
-    ring_incident_edge_iterator():m_n(0),m_u(0),m_p(NEXT) {};
+    ring_incident_edge_iterator():
+      ring_incident_edge_iterator::iterator_adaptor_(0),m_n(0),m_u(0) {};
     explicit ring_incident_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_start):
-                                    m_n(g.n()),m_u(u),m_p(NEXT) {};
+      ring_incident_edge_iterator::iterator_adaptor_(0),
+      m_n(g.n()),m_u(u) {};
     explicit ring_incident_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_end):
-                                    m_n(g.n()),m_u(u),m_p(END) {};
+      ring_incident_edge_iterator::iterator_adaptor_(2),
+      m_n(g.n()),m_u(u) {};
 
   private:
     friend class boost::iterator_core_access;
-
-    void increment() {m_p++;}
-
-    bool equal(const ring_incident_edge_iterator& other) const {
-      return this->m_p == other.m_p;
-    }
 
     edge_descriptor dereference() const {
       static const int ring_offset[] = {1, -1};
       vertex_descriptor v;
 
-      if (m_p == PREV && m_u == 0)
-        v = m_n-1; // Wrap around to the largest vertex
+      size_t p = *this->base_reference();
+      if (m_u == 0 && p == 1)
+        v = m_n-1; // Vertex n-1 precedes vertex 0.
       else
-        v = (m_u+ring_offset[m_p]) % m_n;
+        v = (m_u+ring_offset[p]) % m_n;
       return edge_descriptor(m_u, v);
     }
 
     size_t m_n; // Size of the graph
     vertex_descriptor m_u; // Vertex whose out edges are iterated
-    out_edge_iterator_position m_p; // Current offset into ring_offset array
   };
 
 
