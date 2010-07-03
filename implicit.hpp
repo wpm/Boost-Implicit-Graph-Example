@@ -414,7 +414,7 @@ namespace implicit_ring {
   */
   struct edge_weight_map {
     typedef float value_type;
-    typedef float reference;
+    typedef value_type reference;
     typedef edge_descriptor key_type;
     typedef boost::readable_property_map_tag category;
 
