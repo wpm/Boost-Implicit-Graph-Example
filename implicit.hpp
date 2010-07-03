@@ -178,7 +178,7 @@ namespace implicit_ring {
 
   For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
   around the end of the ring as needed.
-  
+
   It is implemented with the boost::iterator_adaptor class, adapting an
   offset into the dereference::ring_offset array.
   */
@@ -349,7 +349,7 @@ namespace implicit_ring {
 
   This object iterates over all the vertices in the graph, then for each
   vertex returns its first outgoing edge.
-  
+
   It is implemented with the boost::iterator_adaptor class, because it is
   essentially a vertex_iterator with a customized deference operation.
   */
