@@ -199,8 +199,10 @@ namespace implicit_ring {
     explicit ring_incident_edge_iterator(const graph& g,
                                     vertex_descriptor u,
                                     iterator_end):
-      // A graph with one vertex only has a single self-loop.
-      ring_incident_edge_iterator::iterator_adaptor_(g.n() > 1 ? 2:1),
+      // A graph with one vertex only has a single self-loop.  A graph with
+      // two vertices has a single edge between them.  All other graphs have
+      // two edges per vertex.
+      ring_incident_edge_iterator::iterator_adaptor_(g.n() > 2 ? 2:1),
       m_n(g.n()),m_u(u) {};
 
   private:
@@ -365,7 +367,10 @@ namespace implicit_ring {
     explicit ring_edge_iterator(const graph& g, iterator_start):
       ring_edge_iterator::iterator_adaptor_(vertices(g).first),m_g(&g) {};
     explicit ring_edge_iterator(const graph& g, iterator_end):
-      ring_edge_iterator::iterator_adaptor_(vertices(g).second),m_g(&g) {};
+      ring_edge_iterator::iterator_adaptor_(
+        // Size 2 graphs have a single edge connecting the two vertices.
+        g.n() == 2 ? ++(vertices(g).first) : vertices(g).second ),
+      m_g(&g) {};
 
   private:
     friend class boost::iterator_core_access;
@@ -390,8 +395,9 @@ namespace implicit_ring {
   edges_size_type num_edges(const graph&);
 
   inline edges_size_type num_edges(const graph& g) {
-    // There are as many edges as there are vertices.
-    return g.n();
+    // There are as many edges as there are vertices, except for size 2
+    // graphs, which have a single edge connecting the two vertices.
+    return g.n() == 2 ? 1:g.n();
   }
 
 
