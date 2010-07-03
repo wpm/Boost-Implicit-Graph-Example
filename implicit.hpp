@@ -333,7 +333,7 @@ namespace implicit_ring {
   // AdjacencyGraph valid expressions
   std::pair<adjacency_iterator, adjacency_iterator>
   adjacent_vertices(vertex_descriptor, const graph&);
-  
+
   inline std::pair<adjacency_iterator, adjacency_iterator>
   adjacent_vertices(vertex_descriptor u, const graph& g) {
     return std::pair<adjacency_iterator, adjacency_iterator>(
@@ -357,60 +357,50 @@ namespace implicit_ring {
       vertex_iterator(num_vertices(g)) ); // The last iterator position
   }
 
+
   /*
   Iterator over edges in a ring graph.
-  
+
   This object iterates over all the vertices in the graph, then for each
   vertex returns its first outgoing edge.
+  
+  It is implemented with the boost::iterator_adaptor class, because it is
+  essentially a vertex_iterator with a customized deference operation.
   */
-  class ring_edge_iterator:public boost::iterator_facade <
-      ring_edge_iterator,
-      edge_descriptor,
-      boost::forward_traversal_tag,
-      edge_descriptor > {
+  class ring_edge_iterator:public boost::iterator_adaptor<
+    ring_edge_iterator,
+    vertex_iterator,
+    edge_descriptor,
+    boost::use_default,
+    edge_descriptor > {
   public:
-    ring_edge_iterator():m_g(NULL),m_vi(0) {};
+    ring_edge_iterator():
+      ring_edge_iterator::iterator_adaptor_(0),m_g(NULL) {};
     explicit ring_edge_iterator(const graph& g, iterator_start):
-      m_g((graph *)&g),m_vi(vertices(g).first) {};
+      ring_edge_iterator::iterator_adaptor_(vertices(g).first),m_g(&g) {};
     explicit ring_edge_iterator(const graph& g, iterator_end):
-      m_g((graph *)&g),m_vi(vertices(g).second) {};
-
-    ring_edge_iterator& operator=(const ring_edge_iterator& other) {
-      if (this != &other) {
-        m_g = other.m_g;
-        m_vi = other.m_vi;
-      }
-      return *this;
-    }
+      ring_edge_iterator::iterator_adaptor_(vertices(g).second),m_g(&g) {};
 
   private:
     friend class boost::iterator_core_access;
 
-    void increment() { m_vi++;}
-
-    bool equal(const ring_edge_iterator& other) const {
-      return this->m_vi == other.m_vi;
-    }
-
     edge_descriptor dereference() const {
       // The first element in the incident edge list of the current vertex.
-      return *(out_edges(*m_vi, *m_g).first);
+      return *(out_edges(*this->base_reference(), *m_g).first);
     }
 
-    graph *m_g; // The graph being iterated over
-    vertex_iterator m_vi; // Current vertex
+    const graph *m_g; // The graph being iterated over
   };
-
 
   // EdgeListGraph valid expressions
   std::pair<edge_iterator, edge_iterator> edges(const graph&);
-  
+
   inline std::pair<edge_iterator, edge_iterator> edges(const graph& g) {
     return std::pair<edge_iterator, edge_iterator>(
       ring_edge_iterator(g, iterator_start()),
       ring_edge_iterator(g, iterator_end()) );
   }
-  
+
   edges_size_type num_edges(const graph&);
 
   inline edges_size_type num_edges(const graph& g) {
