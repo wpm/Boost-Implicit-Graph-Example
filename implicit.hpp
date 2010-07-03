@@ -23,6 +23,7 @@ The graph models the following concepts:
   AdjacencyGraph
   VertexListGraph
   EdgeListGraph
+  AdjacencyMatrix
   ReadablePropertyGraph
 
 The graph defined here is a ring graph, a graph whose vertices are arranged in
@@ -416,6 +417,21 @@ namespace implicit_ring {
     // There are as many edges as there are vertices.
     return g.n();
   }
+
+
+  // AdjacencyMatrix valid expressions
+  std::pair<edge_descriptor, bool>
+  edge(vertex_descriptor, vertex_descriptor, const graph&);
+
+  inline std::pair<edge_descriptor, bool>
+  edge(vertex_descriptor u, vertex_descriptor v, const graph&g) {
+    if (abs(u-v) == 1 &&
+        u >= 0 && u < num_vertices(g) && v >= 0 && v < num_vertices(g))
+      return std::pair<edge_descriptor, bool>(edge_descriptor(u, v), true);
+    else
+      return std::pair<edge_descriptor, bool>(edge_descriptor(), false);
+  }
+
 
   /*
   Map from edges to floating point weight values

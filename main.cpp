@@ -20,6 +20,7 @@ int main (int argc, char const *argv[]) {
   boost::function_requires< boost::AdjacencyGraphConcept<graph> >();
   boost::function_requires< boost::VertexListGraphConcept<graph> >();
   boost::function_requires< boost::EdgeListGraphConcept<graph> >();
+  boost::function_requires< boost::AdjacencyMatrixConcept<graph> >();
   boost::function_requires<
     boost::ReadablePropertyMapConcept<const_edge_weight_map,
                                       edge_descriptor> >();
