@@ -29,11 +29,15 @@ int main (int argc, char const *argv[]) {
                                         edge_descriptor,
                                         boost::edge_weight_t> >();
 
+  // Specify the size of the graph on the command line, or use a default size
+  // of 5.
+  size_t n = argc == 2 ? atoi(argv[1]) : 5;
+
   // Create a small ring graph.
-  graph g(5);
+  graph g(n);
   const_edge_weight_map m = get(boost::edge_weight, g);
 
-  // Print the outgoing edges of all the vertices.
+  // Print the outgoing edges of all the vertices.  For n=5 this will print:
   //
   // Vertices and outgoing edges
   // Vertex 0: <0, 1>  <0, 4>
@@ -63,7 +67,8 @@ int main (int argc, char const *argv[]) {
   }
   std::cout << num_vertices(g) << " vertices" << std::endl << std::endl;
 
-  // Print all the edges in the graph along with their weights.
+  // Print all the edges in the graph along with their weights.  For n=5 this
+  // will print:
   //
   // Edges and weights
   // <0, 1> weight 1
@@ -79,29 +84,32 @@ int main (int argc, char const *argv[]) {
     std::cout << "<" << e.first << ", " << e.second << ">"
               << " weight " << get(boost::edge_weight, g, e) << std::endl;
   }
-  std::cout << num_edges(g) << " edges"  << std::endl << std::endl;
+  std::cout << num_edges(g) << " edges"  << std::endl;
 
-  // Do a Dijkstra search from vertex 0.
-  //
-  // Vertex 0: distance 0, parent 0
-  // Vertex 1: distance 1, parent 0
-  // Vertex 2: distance 2, parent 1
-  // Vertex 3: distance 2, parent 4
-  // Vertex 4: distance 1, parent 0
-  vertex_descriptor source = 0;
-  std::vector<vertex_descriptor> pred(num_vertices(g));
-  std::vector<edge_weight_map_reference> dist(num_vertices(g));
+  if (n>0) {
+    std::cout << std::endl;
+    // Do a Dijkstra search from vertex 0.  For n=5 this will print:
+    //
+    // Vertex 0: distance 0, parent 0
+    // Vertex 1: distance 1, parent 0
+    // Vertex 2: distance 2, parent 1
+    // Vertex 3: distance 2, parent 4
+    // Vertex 4: distance 1, parent 0
+    vertex_descriptor source = 0;
+    std::vector<vertex_descriptor> pred(num_vertices(g));
+    std::vector<edge_weight_map_reference> dist(num_vertices(g));
 
-  boost::dijkstra_shortest_paths(g, source,
-          boost::predecessor_map(&pred[0]).distance_map(&dist[0]) );
+    boost::dijkstra_shortest_paths(g, source,
+            boost::predecessor_map(&pred[0]).distance_map(&dist[0]) );
 
-  std::cout << "Dijkstra search from vertex " << source << std::endl;
-  for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
-    vertex_descriptor u = *vi;
-    std::cout << "Vertex " << u << ": "
-              << "distance " << dist[u] << ", "
-              << "parent "<< pred[*vi]
-              << std::endl;
+    std::cout << "Dijkstra search from vertex " << source << std::endl;
+    for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
+      vertex_descriptor u = *vi;
+      std::cout << "Vertex " << u << ": "
+                << "distance " << dist[u] << ", "
+                << "parent "<< pred[*vi]
+                << std::endl;
+    }
   }
 
   return 0;
