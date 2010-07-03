@@ -178,6 +178,10 @@ namespace implicit_ring {
 
   For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
   around the end of the ring as needed.
+  
+  Because this is an undirected graph, the edge <x,y> is equivalent to <y,x>.
+  For clarity's sake, however, this iterator always returns an edge descriptor
+  with the smaller vertex index first.
 
   It is implemented with the boost::iterator_adaptor class, adapting an
   offset into the dereference::ring_offset array.
@@ -217,7 +221,7 @@ namespace implicit_ring {
         v = m_n-1; // Vertex n-1 precedes vertex 0.
       else
         v = (m_u+ring_offset[p]) % m_n;
-      return edge_descriptor(m_u, v);
+      return m_u < v ? edge_descriptor(m_u, v):edge_descriptor(v, m_u);
     }
 
     size_t m_n; // Size of the graph

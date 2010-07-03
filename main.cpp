@@ -39,12 +39,12 @@ int main (int argc, char const *argv[]) {
 
   // Print the outgoing edges of all the vertices.  For n=5 this will print:
   //
-  // Vertices and outgoing edges
-  // Vertex 0: <0, 1>  <0, 4>
-  // Vertex 1: <1, 2>  <1, 0>
-  // Vertex 2: <2, 3>  <2, 1>
-  // Vertex 3: <3, 4>  <3, 2>
-  // Vertex 4: <4, 0>  <4, 3>
+  // Vertices, outgoing edges, and adjacent vertices
+  // Vertex 0: <0, 1>  <0, 4>   Adjacent vertices 1 4
+  // Vertex 1: <1, 2>  <0, 1>   Adjacent vertices 2 1
+  // Vertex 2: <2, 3>  <1, 2>   Adjacent vertices 3 2
+  // Vertex 3: <3, 4>  <2, 3>   Adjacent vertices 4 3
+  // Vertex 4: <0, 4>  <3, 4>   Adjacent vertices 4 4
   // 5 vertices
   std::cout << "Vertices, outgoing edges, and adjacent vertices" << std::endl;
   vertex_iterator vi, vi_end;
@@ -75,7 +75,7 @@ int main (int argc, char const *argv[]) {
   // <1, 2> weight 1
   // <2, 3> weight 1
   // <3, 4> weight 1
-  // <4, 0> weight 1
+  // <0, 4> weight 1
   // 5 edges
   std::cout << "Edges and weights" << std::endl;
   edge_iterator ei, ei_end;
