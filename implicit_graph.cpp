@@ -227,27 +227,18 @@ private:
 
 
 // IncidenceGraph valid expressions
-vertex_descriptor source(edge_descriptor, const ring_graph&);
-
-inline vertex_descriptor
-source(edge_descriptor e, const ring_graph& g) {
+vertex_descriptor source(edge_descriptor e, const ring_graph&) {
   // The first vertex in the edge pair is the source.
   return e.first;
 }
 
 
-vertex_descriptor target(edge_descriptor, ring_graph&);
-
-inline vertex_descriptor
-target(edge_descriptor e, const ring_graph& g) {
+vertex_descriptor target(edge_descriptor e, const ring_graph&) {
  // The second vertex in the edge pair is the target.
  return e.second;
 }
 
 std::pair<out_edge_iterator, out_edge_iterator>
-out_edges(vertex_descriptor, const ring_graph&);
-
-inline std::pair<out_edge_iterator, out_edge_iterator>
 out_edges(vertex_descriptor u, const ring_graph& g) {
   return std::pair<out_edge_iterator, out_edge_iterator>(
     out_edge_iterator(g, u, iterator_start()),
@@ -255,10 +246,7 @@ out_edges(vertex_descriptor u, const ring_graph& g) {
 }
 
 
-degree_size_type out_degree(vertex_descriptor, const ring_graph&);
-
-inline degree_size_type
-out_degree(vertex_descriptor, const ring_graph&) {
+degree_size_type out_degree(vertex_descriptor, const ring_graph&) {
   // All vertices in a ring graph have two neighbors.
   return 2;
 }
@@ -266,25 +254,18 @@ out_degree(vertex_descriptor, const ring_graph&) {
 
 // BidirectionalGraph valid expressions
 std::pair<in_edge_iterator, in_edge_iterator>
-in_edges(vertex_descriptor, const ring_graph&);
-
-inline std::pair<in_edge_iterator, in_edge_iterator>
 in_edges(vertex_descriptor u, const ring_graph& g) {
   // The in-edges and out-edges are the same in an undirected graph.
   return out_edges(u, g);
 }
 
-degree_size_type in_degree(vertex_descriptor, const ring_graph&);
-
-inline degree_size_type in_degree(vertex_descriptor u, const ring_graph& g) {
+degree_size_type in_degree(vertex_descriptor u, const ring_graph& g) {
   // The in-degree and out-degree are both equal to the number of incident
   // edges in an undirected graph.
   return out_degree(u, g);
 }
 
-degree_size_type degree(vertex_descriptor, const ring_graph&);
-
-inline degree_size_type degree(vertex_descriptor u, const ring_graph& g) {
+degree_size_type degree(vertex_descriptor u, const ring_graph& g) {
   // The in-degree and out-degree are both equal to the number of incident
   // edges in an undirected graph.
   return out_degree(u, g);
@@ -321,9 +302,6 @@ public:
 
 // AdjacencyGraph valid expressions
 std::pair<adjacency_iterator, adjacency_iterator>
-adjacent_vertices(vertex_descriptor, const ring_graph&);
-
-inline std::pair<adjacency_iterator, adjacency_iterator>
 adjacent_vertices(vertex_descriptor u, const ring_graph& g) {
   return std::pair<adjacency_iterator, adjacency_iterator>(
     adjacency_iterator(u, g, iterator_start()),
@@ -332,15 +310,11 @@ adjacent_vertices(vertex_descriptor u, const ring_graph& g) {
 
 
 // VertexListGraph valid expressions
-vertices_size_type num_vertices(const ring_graph&);
-
-inline vertices_size_type num_vertices(const ring_graph& g) {
+vertices_size_type num_vertices(const ring_graph& g) {
   return g.n();
 };
 
-std::pair<vertex_iterator, vertex_iterator> vertices(const ring_graph&);
-inline std::pair<vertex_iterator, vertex_iterator>
-vertices(const ring_graph& g) {
+std::pair<vertex_iterator, vertex_iterator> vertices(const ring_graph& g) {
   return std::pair<vertex_iterator, vertex_iterator>(
     vertex_iterator(0),                 // The first iterator position
     vertex_iterator(num_vertices(g)) ); // The last iterator position
@@ -386,17 +360,13 @@ private:
 };
 
 // EdgeListGraph valid expressions
-std::pair<edge_iterator, edge_iterator> edges(const ring_graph&);
-
-inline std::pair<edge_iterator, edge_iterator> edges(const ring_graph& g) {
+std::pair<edge_iterator, edge_iterator> edges(const ring_graph& g) {
   return std::pair<edge_iterator, edge_iterator>(
     ring_edge_iterator(g, iterator_start()),
     ring_edge_iterator(g, iterator_end()) );
 }
 
-edges_size_type num_edges(const ring_graph&);
-
-inline edges_size_type num_edges(const ring_graph& g) {
+edges_size_type num_edges(const ring_graph& g) {
   // There are as many edges as there are vertices, except for size 2
   // graphs, which have a single edge connecting the two vertices.
   return g.n() == 2 ? 1:g.n();
@@ -405,10 +375,7 @@ inline edges_size_type num_edges(const ring_graph& g) {
 
 // AdjacencyMatrix valid expressions
 std::pair<edge_descriptor, bool>
-edge(vertex_descriptor, vertex_descriptor, const ring_graph&);
-
-inline std::pair<edge_descriptor, bool>
-edge(vertex_descriptor u, vertex_descriptor v, const ring_graph&g) {
+edge(vertex_descriptor u, vertex_descriptor v, const ring_graph& g) {
   if (abs(u-v) == 1 &&
       u >= 0 && u < num_vertices(g) && v >= 0 && v < num_vertices(g))
     return std::pair<edge_descriptor, bool>(edge_descriptor(u, v), true);
@@ -443,37 +410,26 @@ typedef boost::property_traits<const_edge_weight_map>::key_type
         edge_weight_map_key;
 
 // PropertyMap valid expressions
-edge_weight_map_reference get(const_edge_weight_map, edge_weight_map_key);
-
-inline edge_weight_map_reference
+edge_weight_map_reference
 get(const_edge_weight_map pmap, edge_weight_map_key e) {
   return pmap[e];
 }
 
 
 // ReadablePropertyGraph valid expressions
-const_edge_weight_map get(boost::edge_weight_t, const ring_graph&);
-
-inline const_edge_weight_map
-get(boost::edge_weight_t, const ring_graph& g) {
+const_edge_weight_map get(boost::edge_weight_t, const ring_graph&) {
   return const_edge_weight_map();
 }
 
-edge_weight_map_reference get(boost::edge_weight_t,
-                              const ring_graph&,
-                              edge_weight_map_key);
-
-inline edge_weight_map_reference get(boost::edge_weight_t tag,
-                                     const ring_graph& g,
-                                     edge_weight_map_key e) {
+edge_weight_map_reference get(boost::edge_weight_t tag,
+                              const ring_graph& g,
+                              edge_weight_map_key e) {
   return get(tag, g)[e];
 }
 
 
 // This expression is not part of a graph concept, but is used to return the
 // default vertex index map used by the Dijkstra search algorithm.
-boost::identity_property_map get(boost::vertex_index_t, const ring_graph&);
-
 boost::identity_property_map get(boost::vertex_index_t, const ring_graph&) {
   // The vertex descriptors are already unsigned integer indices, so just
   // return an identity map.
