@@ -41,7 +41,8 @@ ring graph with five nodes.
                                 |      |
                                 3 ---- 2
 
-The edges of this graph are undirected and each has a weight of one.
+The edges of this graph are undirected and each has a weight that is a
+function of its position in the graph.
 
 The vertices indexed are by integer and arranged sequentially so that each
 vertex i is adjacent to i-1 for i>0 and i+1 for i<n-1.  Vertex 0 is also
@@ -60,23 +61,23 @@ Various aspects of the graph are modeled by the following classes:
     make reference to the graph structure are defined in terms of this one.
 
   edge_weight_map
-    This defines a property map between edges and weights. Here all edges have
-    a weight of 1. This can be changed by modifying this class.
+    This defines a property map between edges and weights. Here edges have a
+    weight equal to the average of their endpoint vertex indices, i.e. edge
+    (2,3) has weight 2.5, edge (0,4) has weight 2, etc.
 
   boost::property_map<graph, boost::edge_weight_t>
     This tells Boost to associate the edges of the ring graph with the edge
     weight map.
 
 Along with these classes, the graph concepts are modeled by various valid
-expression functions defined below.  This header also defines a
+expression functions defined below.  This example also defines a
 get(boost::vertex_index_t, const ring_graph&) function which isn’t part of a
 graph concept, but is used for Dijkstra search.
-
 
 Apart from graph, client code should not instantiate the model classes
 directly. Instead it should access them and their properties via
 graph_traits<...> and property_traits<...> lookups. For convenience,
-this header defines short names for all these properties that client code can
+this example defines short names for all these properties that client code can
 use.
 */
 
@@ -386,17 +387,17 @@ edge(vertex_descriptor u, vertex_descriptor v, const ring_graph& g) {
 
 
 /*
-Map from edges to floating point weight values
+Map from edges to weight values
 */
 struct edge_weight_map {
-  typedef float value_type;
+  typedef double value_type;
   typedef value_type reference;
   typedef edge_descriptor key_type;
   typedef boost::readable_property_map_tag category;
 
+  // Edges have a weight equal to the average of their endpoint indexes.
   reference operator[](key_type e) const {
-    // All edges have a weight of one.
-    return 1;
+    return (e.first + e.second)/2.0;
   }
 };
 
@@ -406,12 +407,12 @@ typedef boost::property_map<ring_graph,
                             boost::edge_weight_t>::const_type
         const_edge_weight_map;
 typedef boost::property_traits<const_edge_weight_map>::reference
-        edge_weight_map_reference;
+        edge_weight_map_value_type;
 typedef boost::property_traits<const_edge_weight_map>::key_type
         edge_weight_map_key;
 
 // PropertyMap valid expressions
-edge_weight_map_reference
+edge_weight_map_value_type
 get(const_edge_weight_map pmap, edge_weight_map_key e) {
   return pmap[e];
 }
@@ -422,9 +423,9 @@ const_edge_weight_map get(boost::edge_weight_t, const ring_graph&) {
   return const_edge_weight_map();
 }
 
-edge_weight_map_reference get(boost::edge_weight_t tag,
-                              const ring_graph& g,
-                              edge_weight_map_key e) {
+edge_weight_map_value_type get(boost::edge_weight_t tag,
+                               const ring_graph& g,
+                               edge_weight_map_key e) {
   return get(tag, g)[e];
 }
 
@@ -496,11 +497,11 @@ int main (int argc, char const *argv[]) {
   // will print:
   //
   // Edges and weights
-  // <0, 1> weight 1
-  // <1, 2> weight 1
-  // <2, 3> weight 1
-  // <3, 4> weight 1
-  // <4, 0> weight 1
+  // <0, 1> weight 0.5
+  // <1, 2> weight 1.5
+  // <2, 3> weight 2.5
+  // <3, 4> weight 3.5
+  // <4, 0> weight 2
   // 5 edges
   std::cout << "Edges and weights" << std::endl;
   edge_iterator ei, ei_end;
@@ -515,14 +516,15 @@ int main (int argc, char const *argv[]) {
     std::cout << std::endl;
     // Do a Dijkstra search from vertex 0.  For n=5 this will print:
     //
-    // Vertex 0: distance 0, parent 0
-    // Vertex 1: distance 1, parent 0
-    // Vertex 2: distance 2, parent 1
-    // Vertex 3: distance 2, parent 4
-    // Vertex 4: distance 1, parent 0
+    // Dijkstra search from vertex 0
+    // Vertex 0: parent 0, distance 0
+    // Vertex 1: parent 0, distance 0.5
+    // Vertex 2: parent 1, distance 2
+    // Vertex 3: parent 2, distance 4.5
+    // Vertex 4: parent 0, distance 2
     vertex_descriptor source = 0;
     std::vector<vertex_descriptor> pred(num_vertices(g));
-    std::vector<edge_weight_map_reference> dist(num_vertices(g));
+    std::vector<edge_weight_map_value_type> dist(num_vertices(g));
 
     dijkstra_shortest_paths(g, source,
                             predecessor_map(&pred[0]).
@@ -532,8 +534,8 @@ int main (int argc, char const *argv[]) {
     for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
       vertex_descriptor u = *vi;
       std::cout << "Vertex " << u << ": "
-                << "distance " << dist[u] << ", "
-                << "parent "<< pred[*vi]
+                << "parent "<< pred[*vi] << ", "
+                << "distance " << dist[u]
                 << std::endl;
     }
   }
