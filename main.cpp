@@ -11,29 +11,27 @@
 
 
 int main (int argc, char const *argv[]) {
+  using namespace boost;
   // Check the concepts that graph models.  This is included to demonstrate
   // how concept checking works, but is not required for a working program
   // since Boost algorithms do their own concept checking.
-  boost::function_requires< boost::BidirectionalGraphConcept<graph> >();
-  boost::function_requires< boost::AdjacencyGraphConcept<graph> >();
-  boost::function_requires< boost::VertexListGraphConcept<graph> >();
-  boost::function_requires< boost::EdgeListGraphConcept<graph> >();
-  boost::function_requires< boost::AdjacencyMatrixConcept<graph> >();
-  boost::function_requires<
-    boost::ReadablePropertyMapConcept<const_edge_weight_map,
-                                      edge_descriptor> >();
-  boost::function_requires<
-    boost::ReadablePropertyGraphConcept<graph,
-                                        edge_descriptor,
-                                        boost::edge_weight_t> >();
+  function_requires< BidirectionalGraphConcept<ring_graph> >();
+  function_requires< AdjacencyGraphConcept<ring_graph> >();
+  function_requires< VertexListGraphConcept<ring_graph> >();
+  function_requires< EdgeListGraphConcept<ring_graph> >();
+  function_requires< AdjacencyMatrixConcept<ring_graph> >();
+  function_requires<
+    ReadablePropertyMapConcept<const_edge_weight_map, edge_descriptor> >();
+  function_requires<
+    ReadablePropertyGraphConcept<ring_graph, edge_descriptor, edge_weight_t> >();
 
   // Specify the size of the graph on the command line, or use a default size
   // of 5.
   size_t n = argc == 2 ? atoi(argv[1]) : 5;
 
   // Create a small ring graph.
-  graph g(n);
-  const_edge_weight_map m = get(boost::edge_weight, g);
+  ring_graph g(n);
+  const_edge_weight_map m = get(edge_weight, g);
 
   // Print the outgoing edges of all the vertices.  For n=5 this will print:
   //
@@ -42,7 +40,7 @@ int main (int argc, char const *argv[]) {
   // Vertex 1: <1, 2>  <0, 1>   Adjacent vertices 2 1
   // Vertex 2: <2, 3>  <1, 2>   Adjacent vertices 3 2
   // Vertex 3: <3, 4>  <2, 3>   Adjacent vertices 4 3
-  // Vertex 4: <0, 4>  <3, 4>   Adjacent vertices 4 4
+  // Vertex 4: <0, 4>  <3, 4>   Adjacent vertices 4 4 <- This is a bug
   // 5 vertices
   std::cout << "Vertices, outgoing edges, and adjacent vertices" << std::endl;
   vertex_iterator vi, vi_end;
@@ -57,7 +55,8 @@ int main (int argc, char const *argv[]) {
     }
     std::cout << " Adjacent vertices ";
     // Adjacent vertices
-    adjacency_iterator ai, ai_end;
+    // Here we want our adjacency_iterator and not boost::adjacency_iterator.
+    ::adjacency_iterator ai, ai_end;
     for (tie(ai, ai_end) = adjacent_vertices(u, g); ai != ai_end; ai++) {
       std::cout << *ai << " ";
     }
@@ -80,7 +79,7 @@ int main (int argc, char const *argv[]) {
   for (tie(ei, ei_end) = edges(g); ei != ei_end; ei++) {
     edge_descriptor e = *ei;
     std::cout << "<" << e.first << ", " << e.second << ">"
-              << " weight " << get(boost::edge_weight, g, e) << std::endl;
+              << " weight " << get(edge_weight, g, e) << std::endl;
   }
   std::cout << num_edges(g) << " edges"  << std::endl;
 
@@ -97,8 +96,9 @@ int main (int argc, char const *argv[]) {
     std::vector<vertex_descriptor> pred(num_vertices(g));
     std::vector<edge_weight_map_reference> dist(num_vertices(g));
 
-    boost::dijkstra_shortest_paths(g, source,
-            boost::predecessor_map(&pred[0]).distance_map(&dist[0]) );
+    dijkstra_shortest_paths(g, source,
+                            predecessor_map(&pred[0]).
+                            distance_map(&dist[0]) );
 
     std::cout << "Dijkstra search from vertex " << source << std::endl;
     for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
