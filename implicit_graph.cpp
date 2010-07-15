@@ -11,6 +11,7 @@
 #include <boost/graph/properties.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
+#include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <utility>
 
@@ -113,7 +114,7 @@ indices.  Vertex 0 is also adjacent to the vertex n-1.
 class ring_graph {
 public:
   // Graph associated types
-  typedef size_t vertex_descriptor;
+  typedef std::size_t vertex_descriptor;
   typedef boost::undirected_tag directed_category;
   typedef boost::disallow_parallel_edge_tag edge_parallel_category;
   typedef ring_traversal_catetory traversal_category;
@@ -121,7 +122,7 @@ public:
   // IncidenceGraph associated types
   typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
   typedef ring_incident_edge_iterator out_edge_iterator;
-  typedef size_t degree_size_type;
+  typedef std::size_t degree_size_type;
 
   // BidirectionalGraph associated types
   // Note that undirected graphs make no distinction between in- and out-
@@ -133,21 +134,21 @@ public:
 
   // VertexListGraph associated types
   typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
-  typedef size_t vertices_size_type;
+  typedef std::size_t vertices_size_type;
 
   // EdgeListGraph associated types
   typedef ring_edge_iterator edge_iterator;
-  typedef size_t edges_size_type;
+  typedef std::size_t edges_size_type;
 
   // This type is not part of a graph concept, but is used to return the
   // default vertex index map used by the Dijkstra search algorithm.
   typedef vertex_descriptor vertex_property_type;
 
-  ring_graph(size_t n):m_n(n) {};
-  size_t n() const {return m_n;}
+  ring_graph(std::size_t n):m_n(n) {};
+  std::size_t n() const {return m_n;}
 private:
   // The number of vertices in the graph.
-  size_t m_n;
+  std::size_t m_n;
 };
 
 // Use these graph_traits parameterizations to refer to the associated
@@ -185,7 +186,7 @@ offset into the dereference::ring_offset array.
 */
 class ring_incident_edge_iterator:public boost::iterator_adaptor <
     ring_incident_edge_iterator,
-    boost::counting_iterator<size_t>,
+    boost::counting_iterator<std::size_t>,
     edge_descriptor,
     boost::use_default,
     edge_descriptor > {
@@ -213,7 +214,7 @@ private:
     static const int ring_offset[] = {1, -1};
     vertex_descriptor v;
 
-    size_t p = *this->base_reference();
+    std::size_t p = *this->base_reference();
     if (m_u == 0 && p == 1)
       v = m_n-1; // Vertex n-1 precedes vertex 0.
     else
@@ -221,7 +222,7 @@ private:
     return edge_descriptor(m_u, v);
   }
 
-  size_t m_n; // Size of the graph
+  std::size_t m_n; // Size of the graph
   vertex_descriptor m_u; // Vertex whose out edges are iterated
 };
 
@@ -454,7 +455,7 @@ int main (int argc, char const *argv[]) {
 
   // Specify the size of the graph on the command line, or use a default size
   // of 5.
-  size_t n = argc == 2 ? atoi(argv[1]) : 5;
+  std::size_t n = argc == 2 ? boost::lexical_cast<std::size_t>(argv[1]) : 5;
 
   // Create a small ring graph.
   ring_graph g(n);
