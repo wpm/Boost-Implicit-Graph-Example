@@ -11,8 +11,6 @@
 
 
 int main (int argc, char const *argv[]) {
-  using namespace implicit_ring;
-
   // Check the concepts that graph models.  This is included to demonstrate
   // how concept checking works, but is not required for a working program
   // since Boost algorithms do their own concept checking.

@@ -42,8 +42,7 @@ The vertices indexed are by integer and arranged sequentially so that each
 vertex i is adjacent to i-1 for i>0 and i+1 for i<n-1.  Vertex 0 is also
 adjacent to vertex n-1.  Edges are indexed by pairs of vertex indices.
 
-The graph is defined inside the implicit_ring namespace.  Various aspects of
-the graph are modeled by the following classes:
+Various aspects of the graph are modeled by the following classes:
 
   graph
     The graph class instantiated by a client. This defines types for the
@@ -77,408 +76,401 @@ use.
 */
 
 // Forward declarations
-namespace implicit_ring {
-  class graph;
-  class ring_incident_edge_iterator;
-  class ring_adjacency_iterator;
-  class ring_edge_iterator;
-  struct edge_weight_map;
-}
+class graph;
+class ring_incident_edge_iterator;
+class ring_adjacency_iterator;
+class ring_edge_iterator;
+struct edge_weight_map;
 
 // ReadablePropertyGraph associated types
 namespace boost {
-  // This has to be declared outside the implicit_ring namespace block so
-  // that the namespaces do not nest.
   template<>
-  struct property_map<implicit_ring::graph,
-                      edge_weight_t> {
-    typedef implicit_ring::edge_weight_map type;
-    typedef implicit_ring::edge_weight_map const_type;
+  struct property_map< ::graph, edge_weight_t > {
+    typedef edge_weight_map type;
+    typedef edge_weight_map const_type;
   };
 }
 
-namespace implicit_ring {
-  // Tag values that specify the traversal type in graph::traversal_category.
-  struct ring_traversal_catetory:
-    virtual public boost::bidirectional_graph_tag,
-    virtual public boost::adjacency_graph_tag,
-    virtual public boost::vertex_list_graph_tag,
-    virtual public boost::edge_list_graph_tag
-    {};
+// Tag values that specify the traversal type in graph::traversal_category.
+struct ring_traversal_catetory:
+  virtual public boost::bidirectional_graph_tag,
+  virtual public boost::adjacency_graph_tag,
+  virtual public boost::vertex_list_graph_tag,
+  virtual public boost::edge_list_graph_tag
+  {};
 
 
-  /*
-  Undirected graph of vertices arranged in a ring shape.
+/*
+Undirected graph of vertices arranged in a ring shape.
 
-  Vertices are indexed by integer, and edges connect vertices with consecutive
-  indices.  Vertex 0 is also adjacent to the vertex n-1.
-  */
-  class graph {
-  public:
-    // Graph associated types
-    typedef size_t vertex_descriptor;
-    typedef boost::undirected_tag directed_category;
-    typedef boost::disallow_parallel_edge_tag edge_parallel_category;
-    typedef ring_traversal_catetory traversal_category;
+Vertices are indexed by integer, and edges connect vertices with consecutive
+indices.  Vertex 0 is also adjacent to the vertex n-1.
+*/
+class graph {
+public:
+  // Graph associated types
+  typedef size_t vertex_descriptor;
+  typedef boost::undirected_tag directed_category;
+  typedef boost::disallow_parallel_edge_tag edge_parallel_category;
+  typedef ring_traversal_catetory traversal_category;
 
-    // IncidenceGraph associated types
-    typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
-    typedef ring_incident_edge_iterator out_edge_iterator;
-    typedef size_t degree_size_type;
+  // IncidenceGraph associated types
+  typedef std::pair<vertex_descriptor, vertex_descriptor> edge_descriptor;
+  typedef ring_incident_edge_iterator out_edge_iterator;
+  typedef size_t degree_size_type;
 
-    // BidirectionalGraph associated types
-    // Note that undirected graphs make no distinction between in- and out-
-    // edges.
-    typedef ring_incident_edge_iterator in_edge_iterator;
+  // BidirectionalGraph associated types
+  // Note that undirected graphs make no distinction between in- and out-
+  // edges.
+  typedef ring_incident_edge_iterator in_edge_iterator;
 
-    // AdjacencyGraph associated types
-    typedef ring_adjacency_iterator adjacency_iterator;
+  // AdjacencyGraph associated types
+  typedef ring_adjacency_iterator adjacency_iterator;
 
-    // VertexListGraph associated types
-    typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
-    typedef size_t vertices_size_type;
+  // VertexListGraph associated types
+  typedef boost::counting_iterator<vertex_descriptor> vertex_iterator;
+  typedef size_t vertices_size_type;
 
-    // EdgeListGraph associated types
-    typedef ring_edge_iterator edge_iterator;
-    typedef size_t edges_size_type;
+  // EdgeListGraph associated types
+  typedef ring_edge_iterator edge_iterator;
+  typedef size_t edges_size_type;
 
-    // This type is not part of a graph concept, but is used to return the
-    // default vertex index map used by the Dijkstra search algorithm.
-    typedef vertex_descriptor vertex_property_type;
+  // This type is not part of a graph concept, but is used to return the
+  // default vertex index map used by the Dijkstra search algorithm.
+  typedef vertex_descriptor vertex_property_type;
 
-    graph(size_t n):m_n(n) {};
-    size_t n() const {return m_n;}
-  private:
-    // The number of vertices in the graph.
-    size_t m_n;
-  };
+  graph(size_t n):m_n(n) {};
+  size_t n() const {return m_n;}
+private:
+  // The number of vertices in the graph.
+  size_t m_n;
+};
 
-  // Use these graph_traits parameterizations to refer to the associated
-  // graph types.
-  typedef boost::graph_traits<graph>::vertex_descriptor vertex_descriptor;
-  typedef boost::graph_traits<graph>::edge_descriptor edge_descriptor;
-  typedef boost::graph_traits<graph>::out_edge_iterator out_edge_iterator;
-  typedef boost::graph_traits<graph>::in_edge_iterator in_edge_iterator;
-  typedef boost::graph_traits<graph>::adjacency_iterator adjacency_iterator;
-  typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
-  typedef boost::graph_traits<graph>::vertex_iterator vertex_iterator;
-  typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
-  typedef boost::graph_traits<graph>::edge_iterator edge_iterator;
-  typedef boost::graph_traits<graph>::edges_size_type edges_size_type;
-
-
-  // Tag values passed to an iterator constructor to specify whether it should
-  // be created at the start or the end of its range.
-  struct iterator_position {};
-  struct iterator_start:virtual public iterator_position {};
-  struct iterator_end:virtual public iterator_position {};
-
-  /*
-  Iterator over edges incident on a vertex in a ring graph.
-
-  For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
-  around the end of the ring as needed.
-  
-  Because this is an undirected graph, the edge <x,y> is equivalent to <y,x>.
-  For clarity's sake, however, this iterator always returns an edge descriptor
-  with the smaller vertex index first.
-
-  It is implemented with the boost::iterator_adaptor class, adapting an
-  offset into the dereference::ring_offset array.
-  */
-  class ring_incident_edge_iterator:public boost::iterator_adaptor <
-      ring_incident_edge_iterator,
-      boost::counting_iterator<size_t>,
-      edge_descriptor,
-      boost::use_default,
-      edge_descriptor > {
-  public:
-    ring_incident_edge_iterator():
-      ring_incident_edge_iterator::iterator_adaptor_(0),m_n(0),m_u(0) {};
-    explicit ring_incident_edge_iterator(const graph& g,
-                                    vertex_descriptor u,
-                                    iterator_start):
-      ring_incident_edge_iterator::iterator_adaptor_(0),
-      m_n(g.n()),m_u(u) {};
-    explicit ring_incident_edge_iterator(const graph& g,
-                                    vertex_descriptor u,
-                                    iterator_end):
-      // A graph with one vertex only has a single self-loop.  A graph with
-      // two vertices has a single edge between them.  All other graphs have
-      // two edges per vertex.
-      ring_incident_edge_iterator::iterator_adaptor_(g.n() > 2 ? 2:1),
-      m_n(g.n()),m_u(u) {};
-
-  private:
-    friend class boost::iterator_core_access;
-
-    edge_descriptor dereference() const {
-      static const int ring_offset[] = {1, -1};
-      vertex_descriptor v;
-
-      size_t p = *this->base_reference();
-      if (m_u == 0 && p == 1)
-        v = m_n-1; // Vertex n-1 precedes vertex 0.
-      else
-        v = (m_u+ring_offset[p]) % m_n;
-      return m_u < v ? edge_descriptor(m_u, v):edge_descriptor(v, m_u);
-    }
-
-    size_t m_n; // Size of the graph
-    vertex_descriptor m_u; // Vertex whose out edges are iterated
-  };
+// Use these graph_traits parameterizations to refer to the associated
+// graph types.
+typedef boost::graph_traits<graph>::vertex_descriptor vertex_descriptor;
+typedef boost::graph_traits<graph>::edge_descriptor edge_descriptor;
+typedef boost::graph_traits<graph>::out_edge_iterator out_edge_iterator;
+typedef boost::graph_traits<graph>::in_edge_iterator in_edge_iterator;
+typedef boost::graph_traits<graph>::adjacency_iterator adjacency_iterator;
+typedef boost::graph_traits<graph>::degree_size_type degree_size_type;
+typedef boost::graph_traits<graph>::vertex_iterator vertex_iterator;
+typedef boost::graph_traits<graph>::vertices_size_type vertices_size_type;
+typedef boost::graph_traits<graph>::edge_iterator edge_iterator;
+typedef boost::graph_traits<graph>::edges_size_type edges_size_type;
 
 
-  // IncidenceGraph valid expressions
-  vertex_descriptor source(edge_descriptor, const graph&);
+// Tag values passed to an iterator constructor to specify whether it should
+// be created at the start or the end of its range.
+struct iterator_position {};
+struct iterator_start:virtual public iterator_position {};
+struct iterator_end:virtual public iterator_position {};
 
-  inline vertex_descriptor
-  source(edge_descriptor e, const graph& g) {
-    // The first vertex in the edge pair is the source.
-    return e.first;
-  }
+/*
+Iterator over edges incident on a vertex in a ring graph.
 
+For vertex i, this returns edge (i, i+1) and then edge (i, i-1), wrapping
+around the end of the ring as needed.
 
-  vertex_descriptor target(edge_descriptor, graph&);
+Because this is an undirected graph, the edge <x,y> is equivalent to <y,x>.
+For clarity's sake, however, this iterator always returns an edge descriptor
+with the smaller vertex index first.
 
-  inline vertex_descriptor
-  target(edge_descriptor e, const graph& g) {
-   // The second vertex in the edge pair is the target.
-   return e.second;
-  }
-
-  std::pair<out_edge_iterator, out_edge_iterator>
-  out_edges(vertex_descriptor, const graph&);
-
-  inline std::pair<out_edge_iterator, out_edge_iterator>
-  out_edges(vertex_descriptor u, const graph& g) {
-    return std::pair<out_edge_iterator, out_edge_iterator>(
-      out_edge_iterator(g, u, iterator_start()),
-      out_edge_iterator(g, u, iterator_end()) );
-  }
-
-
-  degree_size_type out_degree(vertex_descriptor, const graph&);
-
-  inline degree_size_type
-  out_degree(vertex_descriptor, const graph&) {
-    // All vertices in a ring graph have two neighbors.
-    return 2;
-  }
-
-
-  // BidirectionalGraph valid expressions
-  std::pair<in_edge_iterator, in_edge_iterator>
-  in_edges(vertex_descriptor, const graph&);
-
-  inline std::pair<in_edge_iterator, in_edge_iterator>
-  in_edges(vertex_descriptor u, const graph& g) {
-    // The in-edges and out-edges are the same in an undirected graph.
-    return out_edges(u, g);
-  }
-
-  degree_size_type in_degree(vertex_descriptor, const graph&);
-
-  inline degree_size_type in_degree(vertex_descriptor u, const graph& g) {
-    // The in-degree and out-degree are both equal to the number of incident
-    // edges in an undirected graph.
-    return out_degree(u, g);
-  }
-
-  degree_size_type degree(vertex_descriptor, const graph&);
-
-  inline degree_size_type degree(vertex_descriptor u, const graph& g) {
-    // The in-degree and out-degree are both equal to the number of incident
-    // edges in an undirected graph.
-    return out_degree(u, g);
-  }
-
-
-  /*
-  Iterator over vertices adjacent to a given vertex.
-
-  This iterates over the target vertices of all the incident edges.
-  */
-  class ring_adjacency_iterator:public boost::adjacency_iterator_generator<
-    graph,
-    vertex_descriptor,
-    out_edge_iterator>::type {
-    // The parent class is an iterator_adpator that turns an iterator over
-    // out edges into an iterator over adjacent vertices.
-    typedef boost::adjacency_iterator_generator<
-      graph,
-      vertex_descriptor,
-      out_edge_iterator>::type parent_class;
-  public:
-    ring_adjacency_iterator() {};
-    ring_adjacency_iterator(vertex_descriptor u,
-                            const graph& g,
-                            iterator_start):
-      parent_class(out_edge_iterator(g, u, iterator_start()), &g) {};
-    ring_adjacency_iterator(vertex_descriptor u,
-                            const graph& g,
-                            iterator_end):
-      parent_class(out_edge_iterator(g, u, iterator_end()), &g) {};
-  };
-
-
-  // AdjacencyGraph valid expressions
-  std::pair<adjacency_iterator, adjacency_iterator>
-  adjacent_vertices(vertex_descriptor, const graph&);
-
-  inline std::pair<adjacency_iterator, adjacency_iterator>
-  adjacent_vertices(vertex_descriptor u, const graph& g) {
-    return std::pair<adjacency_iterator, adjacency_iterator>(
-      adjacency_iterator(u, g, iterator_start()),
-      adjacency_iterator(u, g, iterator_end()));
-  }
-
-
-  // VertexListGraph valid expressions
-  vertices_size_type num_vertices(const graph&);
-
-  inline vertices_size_type num_vertices(const graph& g) {
-    return g.n();
-  };
-
-  std::pair<vertex_iterator, vertex_iterator> vertices(const graph&);
-  inline std::pair<vertex_iterator, vertex_iterator>
-  vertices(const graph& g) {
-    return std::pair<vertex_iterator, vertex_iterator>(
-      vertex_iterator(0),                 // The first iterator position
-      vertex_iterator(num_vertices(g)) ); // The last iterator position
-  }
-
-
-  /*
-  Iterator over edges in a ring graph.
-
-  This object iterates over all the vertices in the graph, then for each
-  vertex returns its first outgoing edge.
-
-  It is implemented with the boost::iterator_adaptor class, because it is
-  essentially a vertex_iterator with a customized deference operation.
-  */
-  class ring_edge_iterator:public boost::iterator_adaptor<
-    ring_edge_iterator,
-    vertex_iterator,
+It is implemented with the boost::iterator_adaptor class, adapting an
+offset into the dereference::ring_offset array.
+*/
+class ring_incident_edge_iterator:public boost::iterator_adaptor <
+    ring_incident_edge_iterator,
+    boost::counting_iterator<size_t>,
     edge_descriptor,
     boost::use_default,
     edge_descriptor > {
-  public:
-    ring_edge_iterator():
-      ring_edge_iterator::iterator_adaptor_(0),m_g(NULL) {};
-    explicit ring_edge_iterator(const graph& g, iterator_start):
-      ring_edge_iterator::iterator_adaptor_(vertices(g).first),m_g(&g) {};
-    explicit ring_edge_iterator(const graph& g, iterator_end):
-      ring_edge_iterator::iterator_adaptor_(
-        // Size 2 graphs have a single edge connecting the two vertices.
-        g.n() == 2 ? ++(vertices(g).first) : vertices(g).second ),
-      m_g(&g) {};
+public:
+  ring_incident_edge_iterator():
+    ring_incident_edge_iterator::iterator_adaptor_(0),m_n(0),m_u(0) {};
+  explicit ring_incident_edge_iterator(const graph& g,
+                                  vertex_descriptor u,
+                                  iterator_start):
+    ring_incident_edge_iterator::iterator_adaptor_(0),
+    m_n(g.n()),m_u(u) {};
+  explicit ring_incident_edge_iterator(const graph& g,
+                                  vertex_descriptor u,
+                                  iterator_end):
+    // A graph with one vertex only has a single self-loop.  A graph with
+    // two vertices has a single edge between them.  All other graphs have
+    // two edges per vertex.
+    ring_incident_edge_iterator::iterator_adaptor_(g.n() > 2 ? 2:1),
+    m_n(g.n()),m_u(u) {};
 
-  private:
-    friend class boost::iterator_core_access;
+private:
+  friend class boost::iterator_core_access;
 
-    edge_descriptor dereference() const {
-      // The first element in the incident edge list of the current vertex.
-      return *(out_edges(*this->base_reference(), *m_g).first);
-    }
+  edge_descriptor dereference() const {
+    static const int ring_offset[] = {1, -1};
+    vertex_descriptor v;
 
-    const graph *m_g; // The graph being iterated over
-  };
-
-  // EdgeListGraph valid expressions
-  std::pair<edge_iterator, edge_iterator> edges(const graph&);
-
-  inline std::pair<edge_iterator, edge_iterator> edges(const graph& g) {
-    return std::pair<edge_iterator, edge_iterator>(
-      ring_edge_iterator(g, iterator_start()),
-      ring_edge_iterator(g, iterator_end()) );
-  }
-
-  edges_size_type num_edges(const graph&);
-
-  inline edges_size_type num_edges(const graph& g) {
-    // There are as many edges as there are vertices, except for size 2
-    // graphs, which have a single edge connecting the two vertices.
-    return g.n() == 2 ? 1:g.n();
-  }
-
-
-  // AdjacencyMatrix valid expressions
-  std::pair<edge_descriptor, bool>
-  edge(vertex_descriptor, vertex_descriptor, const graph&);
-
-  inline std::pair<edge_descriptor, bool>
-  edge(vertex_descriptor u, vertex_descriptor v, const graph&g) {
-    if (abs(u-v) == 1 &&
-        u >= 0 && u < num_vertices(g) && v >= 0 && v < num_vertices(g))
-      return std::pair<edge_descriptor, bool>(edge_descriptor(u, v), true);
+    size_t p = *this->base_reference();
+    if (m_u == 0 && p == 1)
+      v = m_n-1; // Vertex n-1 precedes vertex 0.
     else
-      return std::pair<edge_descriptor, bool>(edge_descriptor(), false);
+      v = (m_u+ring_offset[p]) % m_n;
+    return m_u < v ? edge_descriptor(m_u, v):edge_descriptor(v, m_u);
   }
 
+  size_t m_n; // Size of the graph
+  vertex_descriptor m_u; // Vertex whose out edges are iterated
+};
 
-  /*
-  Map from edges to floating point weight values
-  */
-  struct edge_weight_map {
-    typedef float value_type;
-    typedef value_type reference;
-    typedef edge_descriptor key_type;
-    typedef boost::readable_property_map_tag category;
 
-    reference operator[](key_type e) const {
-      // All edges have a weight of one.
-      return 1;
-    }
-  };
+// IncidenceGraph valid expressions
+vertex_descriptor source(edge_descriptor, const graph&);
 
-  // Use these propety_map and property_traits parameterizations to refer to
-  // the associated property map types.
-  typedef boost::property_map<graph,
-                              boost::edge_weight_t>::const_type
-          const_edge_weight_map;
-  typedef boost::property_traits<const_edge_weight_map>::reference
-          edge_weight_map_reference;
-  typedef boost::property_traits<const_edge_weight_map>::key_type
-          edge_weight_map_key;
+inline vertex_descriptor
+source(edge_descriptor e, const graph& g) {
+  // The first vertex in the edge pair is the source.
+  return e.first;
+}
 
-  // PropertyMap valid expressions
-  edge_weight_map_reference get(const_edge_weight_map, edge_weight_map_key);
 
-  inline edge_weight_map_reference
-  get(const_edge_weight_map pmap, edge_weight_map_key e) {
-    return pmap[e];
+vertex_descriptor target(edge_descriptor, graph&);
+
+inline vertex_descriptor
+target(edge_descriptor e, const graph& g) {
+ // The second vertex in the edge pair is the target.
+ return e.second;
+}
+
+std::pair<out_edge_iterator, out_edge_iterator>
+out_edges(vertex_descriptor, const graph&);
+
+inline std::pair<out_edge_iterator, out_edge_iterator>
+out_edges(vertex_descriptor u, const graph& g) {
+  return std::pair<out_edge_iterator, out_edge_iterator>(
+    out_edge_iterator(g, u, iterator_start()),
+    out_edge_iterator(g, u, iterator_end()) );
+}
+
+
+degree_size_type out_degree(vertex_descriptor, const graph&);
+
+inline degree_size_type
+out_degree(vertex_descriptor, const graph&) {
+  // All vertices in a ring graph have two neighbors.
+  return 2;
+}
+
+
+// BidirectionalGraph valid expressions
+std::pair<in_edge_iterator, in_edge_iterator>
+in_edges(vertex_descriptor, const graph&);
+
+inline std::pair<in_edge_iterator, in_edge_iterator>
+in_edges(vertex_descriptor u, const graph& g) {
+  // The in-edges and out-edges are the same in an undirected graph.
+  return out_edges(u, g);
+}
+
+degree_size_type in_degree(vertex_descriptor, const graph&);
+
+inline degree_size_type in_degree(vertex_descriptor u, const graph& g) {
+  // The in-degree and out-degree are both equal to the number of incident
+  // edges in an undirected graph.
+  return out_degree(u, g);
+}
+
+degree_size_type degree(vertex_descriptor, const graph&);
+
+inline degree_size_type degree(vertex_descriptor u, const graph& g) {
+  // The in-degree and out-degree are both equal to the number of incident
+  // edges in an undirected graph.
+  return out_degree(u, g);
+}
+
+
+/*
+Iterator over vertices adjacent to a given vertex.
+
+This iterates over the target vertices of all the incident edges.
+*/
+class ring_adjacency_iterator:public boost::adjacency_iterator_generator<
+  graph,
+  vertex_descriptor,
+  out_edge_iterator>::type {
+  // The parent class is an iterator_adpator that turns an iterator over
+  // out edges into an iterator over adjacent vertices.
+  typedef boost::adjacency_iterator_generator<
+    graph,
+    vertex_descriptor,
+    out_edge_iterator>::type parent_class;
+public:
+  ring_adjacency_iterator() {};
+  ring_adjacency_iterator(vertex_descriptor u,
+                          const graph& g,
+                          iterator_start):
+    parent_class(out_edge_iterator(g, u, iterator_start()), &g) {};
+  ring_adjacency_iterator(vertex_descriptor u,
+                          const graph& g,
+                          iterator_end):
+    parent_class(out_edge_iterator(g, u, iterator_end()), &g) {};
+};
+
+
+// AdjacencyGraph valid expressions
+std::pair<adjacency_iterator, adjacency_iterator>
+adjacent_vertices(vertex_descriptor, const graph&);
+
+inline std::pair<adjacency_iterator, adjacency_iterator>
+adjacent_vertices(vertex_descriptor u, const graph& g) {
+  return std::pair<adjacency_iterator, adjacency_iterator>(
+    adjacency_iterator(u, g, iterator_start()),
+    adjacency_iterator(u, g, iterator_end()));
+}
+
+
+// VertexListGraph valid expressions
+vertices_size_type num_vertices(const graph&);
+
+inline vertices_size_type num_vertices(const graph& g) {
+  return g.n();
+};
+
+std::pair<vertex_iterator, vertex_iterator> vertices(const graph&);
+inline std::pair<vertex_iterator, vertex_iterator>
+vertices(const graph& g) {
+  return std::pair<vertex_iterator, vertex_iterator>(
+    vertex_iterator(0),                 // The first iterator position
+    vertex_iterator(num_vertices(g)) ); // The last iterator position
+}
+
+
+/*
+Iterator over edges in a ring graph.
+
+This object iterates over all the vertices in the graph, then for each
+vertex returns its first outgoing edge.
+
+It is implemented with the boost::iterator_adaptor class, because it is
+essentially a vertex_iterator with a customized deference operation.
+*/
+class ring_edge_iterator:public boost::iterator_adaptor<
+  ring_edge_iterator,
+  vertex_iterator,
+  edge_descriptor,
+  boost::use_default,
+  edge_descriptor > {
+public:
+  ring_edge_iterator():
+    ring_edge_iterator::iterator_adaptor_(0),m_g(NULL) {};
+  explicit ring_edge_iterator(const graph& g, iterator_start):
+    ring_edge_iterator::iterator_adaptor_(vertices(g).first),m_g(&g) {};
+  explicit ring_edge_iterator(const graph& g, iterator_end):
+    ring_edge_iterator::iterator_adaptor_(
+      // Size 2 graphs have a single edge connecting the two vertices.
+      g.n() == 2 ? ++(vertices(g).first) : vertices(g).second ),
+    m_g(&g) {};
+
+private:
+  friend class boost::iterator_core_access;
+
+  edge_descriptor dereference() const {
+    // The first element in the incident edge list of the current vertex.
+    return *(out_edges(*this->base_reference(), *m_g).first);
   }
 
+  const graph *m_g; // The graph being iterated over
+};
 
-  // ReadablePropertyGraph valid expressions
-  const_edge_weight_map get(boost::edge_weight_t, const graph&);
+// EdgeListGraph valid expressions
+std::pair<edge_iterator, edge_iterator> edges(const graph&);
 
-  inline const_edge_weight_map
-  get(boost::edge_weight_t, const graph& g) {
-    return const_edge_weight_map();
+inline std::pair<edge_iterator, edge_iterator> edges(const graph& g) {
+  return std::pair<edge_iterator, edge_iterator>(
+    ring_edge_iterator(g, iterator_start()),
+    ring_edge_iterator(g, iterator_end()) );
+}
+
+edges_size_type num_edges(const graph&);
+
+inline edges_size_type num_edges(const graph& g) {
+  // There are as many edges as there are vertices, except for size 2
+  // graphs, which have a single edge connecting the two vertices.
+  return g.n() == 2 ? 1:g.n();
+}
+
+
+// AdjacencyMatrix valid expressions
+std::pair<edge_descriptor, bool>
+edge(vertex_descriptor, vertex_descriptor, const graph&);
+
+inline std::pair<edge_descriptor, bool>
+edge(vertex_descriptor u, vertex_descriptor v, const graph&g) {
+  if (abs(u-v) == 1 &&
+      u >= 0 && u < num_vertices(g) && v >= 0 && v < num_vertices(g))
+    return std::pair<edge_descriptor, bool>(edge_descriptor(u, v), true);
+  else
+    return std::pair<edge_descriptor, bool>(edge_descriptor(), false);
+}
+
+
+/*
+Map from edges to floating point weight values
+*/
+struct edge_weight_map {
+  typedef float value_type;
+  typedef value_type reference;
+  typedef edge_descriptor key_type;
+  typedef boost::readable_property_map_tag category;
+
+  reference operator[](key_type e) const {
+    // All edges have a weight of one.
+    return 1;
   }
+};
 
-  edge_weight_map_reference get(boost::edge_weight_t,
-                                const graph&,
-                                edge_weight_map_key);
+// Use these propety_map and property_traits parameterizations to refer to
+// the associated property map types.
+typedef boost::property_map<graph,
+                            boost::edge_weight_t>::const_type
+        const_edge_weight_map;
+typedef boost::property_traits<const_edge_weight_map>::reference
+        edge_weight_map_reference;
+typedef boost::property_traits<const_edge_weight_map>::key_type
+        edge_weight_map_key;
 
-  inline edge_weight_map_reference get(boost::edge_weight_t tag,
-                                       const graph& g,
-                                       edge_weight_map_key e) {
-    return get(tag, g)[e];
-  }
+// PropertyMap valid expressions
+edge_weight_map_reference get(const_edge_weight_map, edge_weight_map_key);
+
+inline edge_weight_map_reference
+get(const_edge_weight_map pmap, edge_weight_map_key e) {
+  return pmap[e];
+}
 
 
-  // This expression is not part of a graph concept, but is used to return the
-  // default vertex index map used by the Dijkstra search algorithm.
-  boost::identity_property_map get(boost::vertex_index_t, const graph&);
+// ReadablePropertyGraph valid expressions
+const_edge_weight_map get(boost::edge_weight_t, const graph&);
 
-  boost::identity_property_map get(boost::vertex_index_t, const graph&) {
-    // The vertex descriptors are already unsigned integer indices, so just
-    // return an identity map.
-    return boost::identity_property_map();
-  }
+inline const_edge_weight_map
+get(boost::edge_weight_t, const graph& g) {
+  return const_edge_weight_map();
+}
+
+edge_weight_map_reference get(boost::edge_weight_t,
+                              const graph&,
+                              edge_weight_map_key);
+
+inline edge_weight_map_reference get(boost::edge_weight_t tag,
+                                     const graph& g,
+                                     edge_weight_map_key e) {
+  return get(tag, g)[e];
+}
+
+
+// This expression is not part of a graph concept, but is used to return the
+// default vertex index map used by the Dijkstra search algorithm.
+boost::identity_property_map get(boost::vertex_index_t, const graph&);
+
+boost::identity_property_map get(boost::vertex_index_t, const graph&) {
+  // The vertex descriptors are already unsigned integer indices, so just
+  // return an identity map.
+  return boost::identity_property_map();
 }
